@@ -1,0 +1,14 @@
+{
+  "name": "bytehaven",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "slitan": "bitbucket:novadynamics/slitan#1.0.7"
+  }
+}

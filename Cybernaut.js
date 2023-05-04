@@ -1,0 +1,3 @@
+class Cybernaut extends Player {
+
+}
