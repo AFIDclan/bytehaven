@@ -126,3 +126,6 @@ dist
 .yarn/install-state.gz
 .pnp.*
 public/bundle.js
+
+# macos dev specific
+.DS_STORE
