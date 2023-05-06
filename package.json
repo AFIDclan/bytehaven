@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "watch": "npx slitan-watch ./index.js ./public/",
+    "build": "npx slitan-build ./index.js ./public/"
   },
   "author": "",
   "license": "ISC",
