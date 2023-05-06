@@ -1,16 +1,13 @@
-const Entity = require('./lib/Entity');
-const PhysicsEntity = require('./lib/PhysicsEntity.js');
-const Engine = require('./lib/NovaEngine.js');
-const Viewport = require('./lib/Viewport.js');
-const Pose = require('./lib/Pose.js');
+const { PhysicsEntity, Engine, Viewport } = require('./engine/index.js');
+const Player = require('./lib/Player.js');
 
 let engine = new Engine();
 
 
-let player = new Entity("player.png");
+let player = new Player("jvs", "green");
 player.pose.angle = 2
 
-let player2 = new Entity("player.png");
+let player2 = new Player("ss", "blue");
 player2.pose.angle = -2
 player2.pose.x = 10
 

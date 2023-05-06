@@ -1,5 +1,5 @@
 
-class NovaEngine
+class Engine
 {
     constructor()
     {
@@ -31,4 +31,4 @@ class NovaEngine
     }
 }
 
-module.exports = NovaEngine;
+module.exports = Engine;

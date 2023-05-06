@@ -3,11 +3,11 @@ const uuidv4 = require('uuid').v4;
 
 class Entity
 {
-    constructor(image_path)
+    constructor(image_path, name="Player")
     {
         this.id = uuidv4();
         this.pose = new Pose(0, 0, 0);
-        this.name = 'Player';
+        this.name = name;
         this.image = new Image();
         this.image.src = image_path;
     }
