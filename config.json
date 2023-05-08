@@ -1,0 +1,9 @@
+{
+    "log": {
+        "namespace": "ByteHaven"
+    },
+    "webservice": {
+        "port": 1346,
+        "address": "localhost"
+    }
+}

@@ -1,23 +1,32 @@
 const Pose = require('./Pose.js');
+const Rect = require('./Rect.js');
 const uuidv4 = require('uuid').v4;
 
 class Entity
 {
-    constructor(image_path, name="Player")
+    constructor(image_path, hitbox=new Rect(), name="Player", serverside=true)
     {
         this.id = uuidv4();
         this.pose = new Pose(0, 0, 0);
         this.name = name;
-        this.image = new Image();
-        this.image.src = image_path;
+        this.hitbox = hitbox;
+        this.serverside = serverside;
+
+        if (!serverside)
+        {
+            this.image = new Image();
+            this.image.src = image_path;
+        }
+        
+        
     }
 
     in_viewport(viewport)
     {
         let x = this.pose.x;
         let y = this.pose.y;
-        let width = this.image.width;
-        let height = this.image.height;
+        let width = this.hitbox.width;
+        let height = this.hitbox.height;
 
         let left = x - width/2;
         let right = x + width/2;
@@ -34,6 +43,9 @@ class Entity
 
     draw(ctx)
     {
+        if (serverside)
+            return;
+
         ctx.save(); // Save the current canvas state
         ctx.translate(this.pose.x, this.pose.y); // Move the origin to the player's position
         ctx.rotate(this.pose.angle); // Rotate the canvas by the player's angle

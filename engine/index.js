@@ -3,5 +3,6 @@ module.exports = {
     PhysicsEntity: require('./PhysicsEntity.js'),
     Pose: require('./Pose.js'),
     Viewport: require('./Viewport.js'),
-    Engine: require('./Engine.js')
+    Engine: require('./Engine.js'),
+    DOMViewport: require('./DOMViewport.js'),
 }
