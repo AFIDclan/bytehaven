@@ -25,8 +25,8 @@ class Game extends EventEmitter
         
         
         setInterval(() => {
-            player.pose.step_forward(1)
-            player.pose.turn(0.01)
+            player.pose.step_forward(3)
+            player.pose.turn(0.03)
             player2.pose.step_forward(1)
             player2.pose.turn(0.01)
         

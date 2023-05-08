@@ -28,6 +28,11 @@ class Entity
         ctx.translate(this.pose.x, this.pose.y); // Move the origin to the player's position
         ctx.rotate(this.pose.angle); // Rotate the canvas by the player's angle
         ctx.drawImage(this.image, -this.image.width/2, -this.image.height/2); // Draw the image centered on the origin
+
+        //Draw hitbox
+        ctx.strokeStyle = "red";
+        ctx.strokeRect(-this.hitbox.width/2, -this.hitbox.height/2, this.hitbox.width, this.hitbox.height);
+        
         ctx.restore(); // Restore the saved canvas state
     }
 }

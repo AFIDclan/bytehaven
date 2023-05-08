@@ -21276,20 +21276,24 @@ class GameView extends Page
         this.viewport = new DOMViewport(this.entities, "game-viewport", 800, 600, new Rect(-500, -375, 1000, 750));
 
         this.io.on("new_entities", (entities) => {
+
+            console.log("New entities", entities);
             entities.forEach((entity) => {
                 let e = new Entity();
                 e.pose.from_other(entity.pose)
                 e.id = entity.id;
                 e.svg_data = entity.svg_data;
-
+                e.hitbox = entity.hitbox;
                 //TODO: Update hitbox
 
 
 
                 e.reload_image();
                 this.entities.push(e);
+
             });
 
+            document.getElementById("entities-total-text").innerHTML = "Entities Total:" + this.entities.length;
             this.viewport.render();
 
         });
@@ -21297,9 +21301,21 @@ class GameView extends Page
         this.io.on("moved_entities", (entities) => {
             entities.forEach((entity) => {
                 let e = this.entities.find((e) => e.id == entity.id);
+                if (!e)
+                    return;
                 e.pose.from_other(entity.pose);
             });
 
+            this.viewport.render();
+        });
+
+        this.io.on("removed_entities", (ids) => {
+            ids.forEach((id) => {
+                let index = this.entities.findIndex((e) => e.id == id);
+                this.entities.splice(index, 1);
+            });
+
+            document.getElementById("entities-total-text").innerHTML = "Entities Total:" + this.entities.length;
             this.viewport.render();
         });
 
@@ -21404,6 +21420,11 @@ class Entity
         ctx.translate(this.pose.x, this.pose.y); // Move the origin to the player's position
         ctx.rotate(this.pose.angle); // Rotate the canvas by the player's angle
         ctx.drawImage(this.image, -this.image.width/2, -this.image.height/2); // Draw the image centered on the origin
+
+        //Draw hitbox
+        ctx.strokeStyle = "red";
+        ctx.strokeRect(-this.hitbox.width/2, -this.hitbox.height/2, this.hitbox.width, this.hitbox.height);
+        
         ctx.restore(); // Restore the saved canvas state
     }
 }
