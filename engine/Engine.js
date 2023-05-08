@@ -28,6 +28,11 @@ class Engine
         {
             entity.update();
         }
+
+        for (let viewport of this.viewports)
+        {
+            viewport.render();
+        }
     }
 }
 

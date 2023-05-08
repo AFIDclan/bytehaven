@@ -10,7 +10,7 @@ const { Logger } = require("yalls");
 
 const config = require("./config.json");
 
-const Game = require("./game.js");
+const Game = require("./Game.js");
 
 const log = Logger.console(config.log.namespace || "tasking-manager", config.log);
 log.set_log_level(config["log_level"] || "debug");
@@ -61,7 +61,7 @@ info_log_stream._write = (chunk, encoding, done) => {
   io_server
   .on('connection', (sock) => {
     sock.on("register_viewport", (vp) => {
-        console.log("registering viewport")
+        log.info(`Registering viewport: ${vp.x}, ${vp.y}, ${vp.width}, ${vp.height}`)
         game.add_remote_viewport(sock, vp);
     });
   })

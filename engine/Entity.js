@@ -1,50 +1,30 @@
-const Pose = require('./Pose.js');
-const Rect = require('./Rect.js');
+const Pose = require('./utils/Pose.js');
+const Rect = require('./utils/Rect.js');
 const uuidv4 = require('uuid').v4;
 
 class Entity
 {
-    constructor(image_path, hitbox=new Rect(), name="Player", serverside=true)
+    constructor(svg_data, hitbox=new Rect(), name="Player")
     {
         this.id = uuidv4();
         this.pose = new Pose(0, 0, 0);
+        this.last_pose = new Pose(0, 0, 0);
         this.name = name;
         this.hitbox = hitbox;
-        this.serverside = serverside;
+        this.moved_last_frame = false;
+        this.svg_data = svg_data;
 
-        if (!serverside)
-        {
-            this.image = new Image();
-            this.image.src = image_path;
-        }
-        
         
     }
 
     in_viewport(viewport)
     {
-        let x = this.pose.x;
-        let y = this.pose.y;
-        let width = this.hitbox.width;
-        let height = this.hitbox.height;
-
-        let left = x - width/2;
-        let right = x + width/2;
-        let top = y - height/2;
-        let bottom = y + height/2;
-
-        let viewport_left = viewport.center.x - viewport.game_width/2;
-        let viewport_right = viewport.center.x + viewport.game_width/2;
-        let viewport_top = viewport.center.y - viewport.game_height/2;
-        let viewport_bottom = viewport.center.y + viewport.game_height/2;
-
-        return (left < viewport_right && right > viewport_left && top < viewport_bottom && bottom > viewport_top);
+        return viewport.view_rect.intersects(this.hitbox);
     }
 
     draw(ctx)
     {
-        if (serverside)
-            return;
+
 
         ctx.save(); // Save the current canvas state
         ctx.translate(this.pose.x, this.pose.y); // Move the origin to the player's position
@@ -55,7 +35,16 @@ class Entity
 
     update()
     {
-        // Do nothing
+
+        //TODO: Hitbox needs to rotate with the entity?
+        this.hitbox.x = this.pose.x;
+        this.hitbox.y = this.pose.y;
+
+        //Check if the entity moved last frame
+        this.moved_last_frame = this.pose.x != this.last_pose.x || this.pose.y != this.last_pose.y || this.pose.angle != this.last_pose.angle;
+
+        //Update last pose
+        this.last_pose.from_other(this.pose);
     }
 }
 

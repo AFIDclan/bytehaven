@@ -1,8 +1,10 @@
 const { PhysicsEntity, Engine, Viewport } = require('./engine');
-const RemoteViewport = require('./engine/RemoteViewport');
+const { RemoteViewport } = require('./engine');
 const Player = require('./lib/Player.js');
 const EventEmitter = require('events')
+const fs = require('fs');
 
+const bullet_svg = fs.readFileSync("./lib/bullet.svg", 'utf8');
 class Game extends EventEmitter
 {
     constructor()
@@ -32,7 +34,7 @@ class Game extends EventEmitter
         }, 1000/60);
         
         setInterval(()=>{
-            let bullet = new PhysicsEntity("bullet.png");
+            let bullet = new PhysicsEntity(bullet_svg);
             bullet.pose.x = player.pose.x;
             bullet.pose.y = player.pose.y;
             bullet.pose.angle = player.pose.angle;
@@ -42,26 +44,15 @@ class Game extends EventEmitter
             bullet.velocity.y = 10 * -Math.cos(bullet.pose.angle);
         
             this.engine.add_entity(bullet);
-        
-            bullet.pose.on('move', (pose) => {
-                let in_viewport = this.engine.viewports.filter((viewport) => bullet.in_viewport(viewport));
-                if (!in_viewport) 
-                    this.engine.remove_entity(bullet)
-            });
+    
         
         }, 1000)
     }
     
-    add_remote_viewport(sock, viewport)
+    add_remote_viewport(sock, view_rect)
     {
-        let remote_viewport = new RemoteViewport(this.engine, sock, viewport);
+        let remote_viewport = new RemoteViewport(sock, this.engine, view_rect);
         this.engine.add_viewport(remote_viewport);
-
-
-        //SUPER TEMP
-        setInterval(()=>{
-            remote_viewport.render()
-        },100)
     }
 }
 

@@ -1,183 +1,72 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
-const Pose = require('./Pose.js');
-
-class DOMViewport {
-  constructor(entities, dom_id, dom_width, dom_height,  center=new Pose(), game_width=1000) {
-
-
-    this.dom_width = dom_width;
-    this.dom_height = dom_height;
-    this.game_width = game_width;
-    this.center = center;
-    this.entities = entities;
-
-    this.aspect_ratio = dom_width / dom_height;
-
-    this.game_height = this.game_width / this.aspect_ratio;
-
-    this.canvas = document.getElementById(dom_id);
-    this.ctx = this.canvas.getContext("2d");
-
-    this.canvas.width = dom_width;
-    this.canvas.height = dom_height;
-
-  }
-
-  render()
-  {
-    let entities = this.entities;
-    
-
-    //Set canvas to be game_width x game_height, centered on the center pose
-    this.ctx.setTransform(this.dom_width / this.game_width, 0, 0, this.dom_height / this.game_height, 0, 0);
-    this.ctx.translate(-this.center.x + this.game_width / 2, -this.center.y + this.game_height / 2);
-
-    //Clear the canvas
-    this.ctx.clearRect(this.center.x - this.game_width / 2, this.center.y - this.game_height / 2, this.game_width, this.game_height);
-
-    //Draw all entities
-    for (let entity of entities)
-    {
-      entity.draw(this.ctx);
-    }
-  }
-
-}
-
-module.exports = DOMViewport;
-},{"./Pose.js":5}],2:[function(require,module,exports){
-
-class Engine
-{
-    constructor()
-    {
-        this.entities = [];
-        this.viewports = [];
-    }
-
-    add_entity(entity)
-    {
-        this.entities.push(entity);
-    }
-
-    remove_entity(entity)
-    {
-        this.entities = this.entities.filter((e) => e.id != entity.id);
-    }
-
-    add_viewport(viewport)
-    {
-        this.viewports.push(viewport);
-    }
-
-    update()
-    {
-        for (let entity of this.entities)
-        {
-            entity.update();
-        }
-    }
-}
-
-module.exports = Engine;
-},{}],3:[function(require,module,exports){
-const Pose = require('./Pose.js');
-const Rect = require('./Rect.js');
-const uuidv4 = require('uuid').v4;
-
-class Entity
-{
-    constructor(image_path, hitbox=new Rect(), name="Player", serverside=true)
-    {
-        this.id = uuidv4();
-        this.pose = new Pose(0, 0, 0);
-        this.name = name;
-        this.hitbox = hitbox;
-        this.serverside = serverside;
-
-        if (!serverside)
-        {
-            this.image = new Image();
-            this.image.src = image_path;
-        }
-        
-        
-    }
-
-    in_viewport(viewport)
-    {
-        let x = this.pose.x;
-        let y = this.pose.y;
-        let width = this.hitbox.width;
-        let height = this.hitbox.height;
-
-        let left = x - width/2;
-        let right = x + width/2;
-        let top = y - height/2;
-        let bottom = y + height/2;
-
-        let viewport_left = viewport.center.x - viewport.game_width/2;
-        let viewport_right = viewport.center.x + viewport.game_width/2;
-        let viewport_top = viewport.center.y - viewport.game_height/2;
-        let viewport_bottom = viewport.center.y + viewport.game_height/2;
-
-        return (left < viewport_right && right > viewport_left && top < viewport_bottom && bottom > viewport_top);
-    }
-
-    draw(ctx)
-    {
-        if (serverside)
-            return;
-
-        ctx.save(); // Save the current canvas state
-        ctx.translate(this.pose.x, this.pose.y); // Move the origin to the player's position
-        ctx.rotate(this.pose.angle); // Rotate the canvas by the player's angle
-        ctx.drawImage(this.image, -this.image.width/2, -this.image.height/2); // Draw the image centered on the origin
-        ctx.restore(); // Restore the saved canvas state
-    }
-
-    update()
-    {
-        // Do nothing
-    }
-}
-
-module.exports = Entity;
-},{"./Pose.js":5,"./Rect.js":6,"uuid":55}],4:[function(require,module,exports){
-const Entity = require('./Entity.js');
-const Pose = require('./Pose.js');
-const Rect = require('./Rect.js');
-
-class PhysicsEntity extends Entity
-{
-    constructor(image_path, name="PhysicsEntity", serverside=true)
-    {
-        super(image_path, new Rect(0, 0, 20, 20), name, serverside);
-
-        this.velocity = new Pose(0, 0, 0);
-    }
-
-    update()
-    {
-        super.update();
-        
-        this.pose.x += this.velocity.x;
-        this.pose.y += this.velocity.y;
-        this.pose.angle += this.velocity.angle;
-    }
-}
-
-module.exports = PhysicsEntity;
-},{"./Entity.js":3,"./Pose.js":5,"./Rect.js":6}],5:[function(require,module,exports){
-const EventEmitter = require('events');
-class Pose extends EventEmitter {
+const Vec2 = require('./Vec2');
+class Pose extends Vec2 {
 
     constructor(x=0, y=0, angle=0)
     {
-        super();
+        super(x, y);
+        this.angle = angle;
+    }
+
+    step_forward(distance)
+    {
+        this.x += distance * Math.sin(this.angle);
+        this.y += distance * -Math.cos(this.angle);
+    }
+
+    turn(angle)
+    {
+        this.angle += angle;
+    }
+
+    from_other(other)
+    {
+        this.x = other.x;
+        this.y = other.y;
+        this.angle = other.angle;
+    }
+    
+}
+
+module.exports = Pose;
+},{"./Vec2":3}],2:[function(require,module,exports){
+
+
+class Rect
+{
+    constructor(x=0, y=0, width=0, height=0)
+    {
         this._x = x;
         this._y = y;
-        this._angle = angle;
+        this._width = width;
+        this._height = height;
+        
+    }
+
+    intersects(other)
+    {
+        //TODO: This may be wrong
+        return this.left < other.right && this.right > other.left && this.top < other.bottom && this.bottom > other.top;
+    }
+
+    set x(x)
+    {
+        this._x = x;
+    }
+
+    set y(y)
+    {
+        this._y = y;
+    }
+
+    set width(width)
+    {
+        this._width = width;
+    }
+
+    set height(height)
+    {
+        this._height = height;
     }
 
     get x()
@@ -190,120 +79,65 @@ class Pose extends EventEmitter {
         return this._y;
     }
 
-    get angle()
+    get width()
     {
-        return this._angle;
+        return this._width;
     }
 
-    set x(x)
+    get height()
     {
-        this._x = x;
-        this.emit('move', this)
+        return this._height;
     }
 
-    set y(y)
+    get center()
     {
-        this._y = y;
-        this.emit('move', this)
+        return {x: this._x + this._width / 2, y: this._y + this._height / 2};
     }
 
-    set angle(angle)
+    get left()
     {
-        this._angle = angle;
-        this.emit('turn', this)
+        return this._x;
     }
 
-    step_forward(distance)
+    get right()
     {
-        this._x += distance * Math.sin(this.angle);
-        this._y += distance * -Math.cos(this.angle);
-        this.emit('move', this)
-
+        return this._x + this._width;
     }
 
-    turn(angle)
+    get top()
     {
-        this._angle += angle;
-        this.emit('turn', this)
+        return this._y;
     }
-}
 
-module.exports = Pose;
-},{"events":33}],6:[function(require,module,exports){
-class Rect
-{
-    constructor(x=0, y=0, width=0, height=0)
+    get bottom()
     {
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
+        return this._y + this._height;
+    }
+
+    toJSON()
+    {
+        return {x: this._x, y: this._y, width: this._width, height: this._height};
+    }
+
+    static from_json(json)
+    {   
+        return new Rect(json.x, json.y, json.width, json.height);
     }
     
 }
 
 module.exports = Rect;
-},{}],7:[function(require,module,exports){
-const Pose = require('./Pose.js');
+},{}],3:[function(require,module,exports){
 
-class Viewport {
-  constructor(engine, dom_id, dom_width, dom_height,  center=new Pose(), game_width=1000) {
-
-
-    this.dom_width = dom_width;
-    this.dom_height = dom_height;
-    this.game_width = game_width;
-    this.center = center;
-    this.engine = engine;
-
-    this.aspect_ratio = dom_width / dom_height;
-
-    this.game_height = this.game_width / this.aspect_ratio;
-
-    this.canvas = document.getElementById(dom_id);
-    this.ctx = this.canvas.getContext("2d");
-
-    this.canvas.width = dom_width;
-    this.canvas.height = dom_height;
-
-  }
-
-  render()
-  {
-    let entities = this.engine.entities;
-    
-    //Cull entities that are outside the viewport
-    entities = entities.filter((entity) => {
-        return entity.in_viewport(this);
-    });
-
-    //Set canvas to be game_width x game_height, centered on the center pose
-    this.ctx.setTransform(this.dom_width / this.game_width, 0, 0, this.dom_height / this.game_height, 0, 0);
-    this.ctx.translate(-this.center.x + this.game_width / 2, -this.center.y + this.game_height / 2);
-
-    //Clear the canvas
-    this.ctx.clearRect(this.center.x - this.game_width / 2, this.center.y - this.game_height / 2, this.game_width, this.game_height);
-
-    //Draw all entities
-    for (let entity of entities)
-    {
-      entity.draw(this.ctx);
+class Vec2 {
+    constructor(x=0, y=0) {
+        this.x = x;
+        this.y = y;
     }
-  }
-
 }
 
-module.exports = Viewport;
-},{"./Pose.js":5}],8:[function(require,module,exports){
-module.exports = {
-    Entity: require('./Entity.js'),
-    PhysicsEntity: require('./PhysicsEntity.js'),
-    Pose: require('./Pose.js'),
-    Viewport: require('./Viewport.js'),
-    Engine: require('./Engine.js'),
-    DOMViewport: require('./DOMViewport.js'),
-}
-},{"./DOMViewport.js":1,"./Engine.js":2,"./Entity.js":3,"./PhysicsEntity.js":4,"./Pose.js":5,"./Viewport.js":7}],9:[function(require,module,exports){
+module.exports = Vec2;
+},{}],4:[function(require,module,exports){
 
 /**
  * Expose `Emitter`.
@@ -481,7 +315,7 @@ Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
 };
 
-},{}],10:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 'use strict'
 
 exports.byteLength = byteLength
@@ -633,7 +467,7 @@ function fromByteArray (uint8) {
   return parts.join('')
 }
 
-},{}],11:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 (function (Buffer){(function (){
 /*!
  * The buffer module from node.js, for the browser.
@@ -2414,7 +2248,7 @@ function numberIsNaN (obj) {
 }
 
 }).call(this)}).call(this,require("buffer").Buffer)
-},{"base64-js":10,"buffer":11,"ieee754":34}],12:[function(require,module,exports){
+},{"base64-js":5,"buffer":6,"ieee754":29}],7:[function(require,module,exports){
 (function (process){(function (){
 /* eslint-env browser */
 
@@ -2687,7 +2521,7 @@ formatters.j = function (v) {
 };
 
 }).call(this)}).call(this,require('_process'))
-},{"./common":13,"_process":40}],13:[function(require,module,exports){
+},{"./common":8,"_process":35}],8:[function(require,module,exports){
 
 /**
  * This is the common logic for both the Node.js and web browser
@@ -2963,7 +2797,7 @@ function setup(env) {
 
 module.exports = setup;
 
-},{"ms":37}],14:[function(require,module,exports){
+},{"ms":32}],9:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.hasCORS = void 0;
@@ -2979,7 +2813,7 @@ catch (err) {
 }
 exports.hasCORS = value;
 
-},{}],15:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 "use strict";
 // imported from https://github.com/galkn/querystring
 /**
@@ -3020,7 +2854,7 @@ function decode(qs) {
 }
 exports.decode = decode;
 
-},{}],16:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.parse = void 0;
@@ -3087,7 +2921,7 @@ function queryKey(uri, query) {
     return data;
 }
 
-},{}],17:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 // imported from https://github.com/unshiftio/yeast
 'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
@@ -3144,7 +2978,7 @@ exports.yeast = yeast;
 for (; i < length; i++)
     map[alphabet[i]] = i;
 
-},{}],18:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.globalThisShim = void 0;
@@ -3160,7 +2994,7 @@ exports.globalThisShim = (() => {
     }
 })();
 
-},{}],19:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.nextTick = exports.parse = exports.installTimerFunctions = exports.transports = exports.Transport = exports.protocol = exports.Socket = void 0;
@@ -3178,7 +3012,7 @@ Object.defineProperty(exports, "parse", { enumerable: true, get: function () { r
 var websocket_constructor_js_1 = require("./transports/websocket-constructor.js");
 Object.defineProperty(exports, "nextTick", { enumerable: true, get: function () { return websocket_constructor_js_1.nextTick; } });
 
-},{"./contrib/parseuri.js":16,"./socket.js":20,"./transport.js":21,"./transports/index.js":22,"./transports/websocket-constructor.js":24,"./util.js":27}],20:[function(require,module,exports){
+},{"./contrib/parseuri.js":11,"./socket.js":15,"./transport.js":16,"./transports/index.js":17,"./transports/websocket-constructor.js":19,"./util.js":22}],15:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -3789,7 +3623,7 @@ class Socket extends component_emitter_1.Emitter {
 exports.Socket = Socket;
 Socket.protocol = engine_io_parser_1.protocol;
 
-},{"./contrib/parseqs.js":15,"./contrib/parseuri.js":16,"./transports/index.js":22,"./util.js":27,"@socket.io/component-emitter":9,"debug":12,"engine.io-parser":32}],21:[function(require,module,exports){
+},{"./contrib/parseqs.js":10,"./contrib/parseuri.js":11,"./transports/index.js":17,"./util.js":22,"@socket.io/component-emitter":4,"debug":7,"engine.io-parser":27}],16:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -3915,7 +3749,7 @@ class Transport extends component_emitter_1.Emitter {
 }
 exports.Transport = Transport;
 
-},{"./util.js":27,"@socket.io/component-emitter":9,"debug":12,"engine.io-parser":32}],22:[function(require,module,exports){
+},{"./util.js":22,"@socket.io/component-emitter":4,"debug":7,"engine.io-parser":27}],17:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.transports = void 0;
@@ -3926,7 +3760,7 @@ exports.transports = {
     polling: polling_js_1.Polling,
 };
 
-},{"./polling.js":23,"./websocket.js":25}],23:[function(require,module,exports){
+},{"./polling.js":18,"./websocket.js":20}],18:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -4351,7 +4185,7 @@ function unloadHandler() {
     }
 }
 
-},{"../contrib/parseqs.js":15,"../contrib/yeast.js":17,"../globalThis.js":18,"../transport.js":21,"../util.js":27,"./xmlhttprequest.js":26,"@socket.io/component-emitter":9,"debug":12,"engine.io-parser":32}],24:[function(require,module,exports){
+},{"../contrib/parseqs.js":10,"../contrib/yeast.js":12,"../globalThis.js":13,"../transport.js":16,"../util.js":22,"./xmlhttprequest.js":21,"@socket.io/component-emitter":4,"debug":7,"engine.io-parser":27}],19:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.defaultBinaryType = exports.usingBrowserWebSocket = exports.WebSocket = exports.nextTick = void 0;
@@ -4369,7 +4203,7 @@ exports.WebSocket = globalThis_js_1.globalThisShim.WebSocket || globalThis_js_1.
 exports.usingBrowserWebSocket = true;
 exports.defaultBinaryType = "arraybuffer";
 
-},{"../globalThis.js":18}],25:[function(require,module,exports){
+},{"../globalThis.js":13}],20:[function(require,module,exports){
 (function (Buffer){(function (){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
@@ -4550,7 +4384,7 @@ class WS extends transport_js_1.Transport {
 exports.WS = WS;
 
 }).call(this)}).call(this,require("buffer").Buffer)
-},{"../contrib/parseqs.js":15,"../contrib/yeast.js":17,"../transport.js":21,"../util.js":27,"./websocket-constructor.js":24,"buffer":11,"debug":12,"engine.io-parser":32}],26:[function(require,module,exports){
+},{"../contrib/parseqs.js":10,"../contrib/yeast.js":12,"../transport.js":16,"../util.js":22,"./websocket-constructor.js":19,"buffer":6,"debug":7,"engine.io-parser":27}],21:[function(require,module,exports){
 "use strict";
 // browser shim for xmlhttprequest module
 Object.defineProperty(exports, "__esModule", { value: true });
@@ -4575,7 +4409,7 @@ function XHR(opts) {
 }
 exports.XHR = XHR;
 
-},{"../contrib/has-cors.js":14,"../globalThis.js":18}],27:[function(require,module,exports){
+},{"../contrib/has-cors.js":9,"../globalThis.js":13}],22:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.byteLength = exports.installTimerFunctions = exports.pick = void 0;
@@ -4635,7 +4469,7 @@ function utf8Length(str) {
     return length;
 }
 
-},{"./globalThis.js":18}],28:[function(require,module,exports){
+},{"./globalThis.js":13}],23:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ERROR_PACKET = exports.PACKET_TYPES_REVERSE = exports.PACKET_TYPES = void 0;
@@ -4656,7 +4490,7 @@ Object.keys(PACKET_TYPES).forEach(key => {
 const ERROR_PACKET = { type: "error", data: "parser error" };
 exports.ERROR_PACKET = ERROR_PACKET;
 
-},{}],29:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.decode = exports.encode = void 0;
@@ -4706,7 +4540,7 @@ const decode = (base64) => {
 };
 exports.decode = decode;
 
-},{}],30:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const commons_js_1 = require("./commons.js");
@@ -4759,7 +4593,7 @@ const mapBinary = (data, binaryType) => {
 };
 exports.default = decodePacket;
 
-},{"./commons.js":28,"./contrib/base64-arraybuffer.js":29}],31:[function(require,module,exports){
+},{"./commons.js":23,"./contrib/base64-arraybuffer.js":24}],26:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const commons_js_1 = require("./commons.js");
@@ -4804,7 +4638,7 @@ const encodeBlobAsBase64 = (data, callback) => {
 };
 exports.default = encodePacket;
 
-},{"./commons.js":28}],32:[function(require,module,exports){
+},{"./commons.js":23}],27:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.decodePayload = exports.decodePacket = exports.encodePayload = exports.encodePacket = exports.protocol = void 0;
@@ -4844,7 +4678,7 @@ const decodePayload = (encodedPayload, binaryType) => {
 exports.decodePayload = decodePayload;
 exports.protocol = 4;
 
-},{"./decodePacket.js":30,"./encodePacket.js":31}],33:[function(require,module,exports){
+},{"./decodePacket.js":25,"./encodePacket.js":26}],28:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -5343,7 +5177,7 @@ function eventTargetAgnosticAddListener(emitter, name, listener, flags) {
   }
 }
 
-},{}],34:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 /*! ieee754. BSD-3-Clause License. Feross Aboukhadijeh <https://feross.org/opensource> */
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
@@ -5430,7 +5264,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128
 }
 
-},{}],35:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.6.4
  * https://jquery.com/
@@ -16397,7 +16231,7 @@ if ( typeof noGlobal === "undefined" ) {
 return jQuery;
 } );
 
-},{}],36:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 /*! js-cookie v3.0.5 | MIT */
 ;
 (function (global, factory) {
@@ -16546,7 +16380,7 @@ return jQuery;
 
 }));
 
-},{}],37:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 /**
  * Helpers.
  */
@@ -16710,7 +16544,7 @@ function plural(ms, msAbs, n, name) {
   return Math.round(ms / n) + ' ' + name + (isPlural ? 's' : '');
 }
 
-},{}],38:[function(require,module,exports){
+},{}],33:[function(require,module,exports){
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
   typeof define === 'function' && define.amd ? define(factory) :
@@ -17484,7 +17318,7 @@ function plural(ms, msAbs, n, name) {
 
 })));
 
-},{}],39:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 (function (process){(function (){
 // 'path' module extracted from Node.js v8.11.1 (only the posix part)
 // transplited with Babel
@@ -18017,7 +17851,7 @@ posix.posix = posix;
 module.exports = posix;
 
 }).call(this)}).call(this,require('_process'))
-},{"_process":40}],40:[function(require,module,exports){
+},{"_process":35}],35:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -18203,7 +18037,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],41:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 const Page = require("./lib/Page")
 const Partial = require("./lib/Partial")
 const PartialsRenderer = require("./lib/PartialsRenderer")
@@ -18215,7 +18049,7 @@ function slitan_bundle_resource(path) {
 
 module.exports = { Page, Partial, PartialsRenderer, EntryPoint, slitan_bundle_resource }
 
-},{"./lib/EntryPoint":42,"./lib/Page":43,"./lib/Partial":44,"./lib/PartialsRenderer":45}],42:[function(require,module,exports){
+},{"./lib/EntryPoint":37,"./lib/Page":38,"./lib/Partial":39,"./lib/PartialsRenderer":40}],37:[function(require,module,exports){
 /**
  * The entry point for the application.
  *
@@ -18296,7 +18130,7 @@ class EntryPoint
 
 module.exports = EntryPoint
 
-},{"jquery":35}],43:[function(require,module,exports){
+},{"jquery":30}],38:[function(require,module,exports){
 const IO = require("socket.io-client");
 const Cookies = require("js-cookie");
 const { EventEmitter } = require("events");
@@ -18395,7 +18229,7 @@ class Page extends EventEmitter {
 
 module.exports = Page;
 
-},{"events":33,"js-cookie":36,"socket.io-client":47}],44:[function(require,module,exports){
+},{"events":28,"js-cookie":31,"socket.io-client":42}],39:[function(require,module,exports){
 const PartialsRenderer = require("../lib/PartialsRenderer")
 const { EventEmitter } = require("events");
 const path = require('path');
@@ -18563,7 +18397,7 @@ class Partial extends EventEmitter {
 
 module.exports = Partial;
 
-},{"../lib/PartialsRenderer":45,"events":33,"path":39}],45:[function(require,module,exports){
+},{"../lib/PartialsRenderer":40,"events":28,"path":34}],40:[function(require,module,exports){
 const Mustache = require("mustache");
 
 class PartialsRenderer
@@ -18604,7 +18438,7 @@ class PartialsRenderer
 
 module.exports = PartialsRenderer;
 
-},{"mustache":38}],46:[function(require,module,exports){
+},{"mustache":33}],41:[function(require,module,exports){
 "use strict";
 /**
  * Initialize backoff timer with `opts`.
@@ -18676,7 +18510,7 @@ Backoff.prototype.setJitter = function (jitter) {
     this.jitter = jitter;
 };
 
-},{}],47:[function(require,module,exports){
+},{}],42:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -18747,7 +18581,7 @@ Object.defineProperty(exports, "protocol", { enumerable: true, get: function () 
 
 module.exports = lookup;
 
-},{"./manager.js":48,"./socket.js":50,"./url.js":51,"debug":12,"socket.io-parser":53}],48:[function(require,module,exports){
+},{"./manager.js":43,"./socket.js":45,"./url.js":46,"debug":7,"socket.io-parser":48}],43:[function(require,module,exports){
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -19155,7 +18989,7 @@ class Manager extends component_emitter_1.Emitter {
 }
 exports.Manager = Manager;
 
-},{"./contrib/backo2.js":46,"./on.js":49,"./socket.js":50,"@socket.io/component-emitter":9,"debug":12,"engine.io-client":19,"socket.io-parser":53}],49:[function(require,module,exports){
+},{"./contrib/backo2.js":41,"./on.js":44,"./socket.js":45,"@socket.io/component-emitter":4,"debug":7,"engine.io-client":14,"socket.io-parser":48}],44:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.on = void 0;
@@ -19167,7 +19001,7 @@ function on(obj, ev, fn) {
 }
 exports.on = on;
 
-},{}],50:[function(require,module,exports){
+},{}],45:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -20035,7 +19869,7 @@ class Socket extends component_emitter_1.Emitter {
 }
 exports.Socket = Socket;
 
-},{"./on.js":49,"@socket.io/component-emitter":9,"debug":12,"socket.io-parser":53}],51:[function(require,module,exports){
+},{"./on.js":44,"@socket.io/component-emitter":4,"debug":7,"socket.io-parser":48}],46:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -20107,7 +19941,7 @@ function url(uri, path = "", loc) {
 }
 exports.url = url;
 
-},{"debug":12,"engine.io-client":19}],52:[function(require,module,exports){
+},{"debug":7,"engine.io-client":14}],47:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.reconstructPacket = exports.deconstructPacket = void 0;
@@ -20197,7 +20031,7 @@ function _reconstructPacket(data, buffers) {
     return data;
 }
 
-},{"./is-binary.js":54}],53:[function(require,module,exports){
+},{"./is-binary.js":49}],48:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Decoder = exports.Encoder = exports.PacketType = exports.protocol = void 0;
@@ -20502,7 +20336,7 @@ class BinaryReconstructor {
     }
 }
 
-},{"./binary.js":52,"./is-binary.js":54,"@socket.io/component-emitter":9,"debug":12}],54:[function(require,module,exports){
+},{"./binary.js":47,"./is-binary.js":49,"@socket.io/component-emitter":4,"debug":7}],49:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.hasBinary = exports.isBinary = void 0;
@@ -20559,7 +20393,7 @@ function hasBinary(obj, toJSON) {
 }
 exports.hasBinary = hasBinary;
 
-},{}],55:[function(require,module,exports){
+},{}],50:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -20639,7 +20473,7 @@ var _stringify = _interopRequireDefault(require("./stringify.js"));
 var _parse = _interopRequireDefault(require("./parse.js"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-},{"./nil.js":58,"./parse.js":59,"./stringify.js":63,"./v1.js":64,"./v3.js":65,"./v4.js":67,"./v5.js":68,"./validate.js":69,"./version.js":70}],56:[function(require,module,exports){
+},{"./nil.js":53,"./parse.js":54,"./stringify.js":58,"./v1.js":59,"./v3.js":60,"./v4.js":62,"./v5.js":63,"./validate.js":64,"./version.js":65}],51:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -20863,7 +20697,7 @@ function md5ii(a, b, c, d, x, s, t) {
 
 var _default = md5;
 exports.default = _default;
-},{}],57:[function(require,module,exports){
+},{}],52:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -20875,7 +20709,7 @@ var _default = {
   randomUUID
 };
 exports.default = _default;
-},{}],58:[function(require,module,exports){
+},{}],53:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -20884,7 +20718,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.default = void 0;
 var _default = '00000000-0000-0000-0000-000000000000';
 exports.default = _default;
-},{}],59:[function(require,module,exports){
+},{}],54:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -20930,7 +20764,7 @@ function parse(uuid) {
 
 var _default = parse;
 exports.default = _default;
-},{"./validate.js":69}],60:[function(require,module,exports){
+},{"./validate.js":64}],55:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -20939,7 +20773,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.default = void 0;
 var _default = /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|00000000-0000-0000-0000-000000000000)$/i;
 exports.default = _default;
-},{}],61:[function(require,module,exports){
+},{}],56:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -20965,7 +20799,7 @@ function rng() {
 
   return getRandomValues(rnds8);
 }
-},{}],62:[function(require,module,exports){
+},{}],57:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -21070,7 +20904,7 @@ function sha1(bytes) {
 
 var _default = sha1;
 exports.default = _default;
-},{}],63:[function(require,module,exports){
+},{}],58:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -21115,7 +20949,7 @@ function stringify(arr, offset = 0) {
 
 var _default = stringify;
 exports.default = _default;
-},{"./validate.js":69}],64:[function(require,module,exports){
+},{"./validate.js":64}],59:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -21223,7 +21057,7 @@ function v1(options, buf, offset) {
 
 var _default = v1;
 exports.default = _default;
-},{"./rng.js":61,"./stringify.js":63}],65:[function(require,module,exports){
+},{"./rng.js":56,"./stringify.js":58}],60:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -21240,7 +21074,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 const v3 = (0, _v.default)('v3', 0x30, _md.default);
 var _default = v3;
 exports.default = _default;
-},{"./md5.js":56,"./v35.js":66}],66:[function(require,module,exports){
+},{"./md5.js":51,"./v35.js":61}],61:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -21321,7 +21155,7 @@ function v35(name, version, hashfunc) {
   generateUUID.URL = URL;
   return generateUUID;
 }
-},{"./parse.js":59,"./stringify.js":63}],67:[function(require,module,exports){
+},{"./parse.js":54,"./stringify.js":58}],62:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -21365,7 +21199,7 @@ function v4(options, buf, offset) {
 
 var _default = v4;
 exports.default = _default;
-},{"./native.js":57,"./rng.js":61,"./stringify.js":63}],68:[function(require,module,exports){
+},{"./native.js":52,"./rng.js":56,"./stringify.js":58}],63:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -21382,7 +21216,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 const v5 = (0, _v.default)('v5', 0x50, _sha.default);
 var _default = v5;
 exports.default = _default;
-},{"./sha1.js":62,"./v35.js":66}],69:[function(require,module,exports){
+},{"./sha1.js":57,"./v35.js":61}],64:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -21400,7 +21234,7 @@ function validate(uuid) {
 
 var _default = validate;
 exports.default = _default;
-},{"./regex.js":60}],70:[function(require,module,exports){
+},{"./regex.js":55}],65:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -21422,9 +21256,11 @@ function version(uuid) {
 
 var _default = version;
 exports.default = _default;
-},{"./validate.js":69}],71:[function(require,module,exports){
+},{"./validate.js":64}],66:[function(require,module,exports){
 const { Page } = require('slitan')
-const { DOMViewport } = require('../engine');
+const DOMViewport = require('./lib/DOMViewport');
+const Entity = require('./lib/Entity.js');
+const Rect = require('../engine/utils/Rect.js');
 
 class GameView extends Page 
 {
@@ -21437,14 +21273,37 @@ class GameView extends Page
 
         this.entities = [];
 
-        this.viewport = new DOMViewport(this.entities, "game-viewport", 800, 600);
+        this.viewport = new DOMViewport(this.entities, "game-viewport", 800, 600, new Rect(-500, -375, 1000, 750));
 
-        this.io.on("entities", (entities) => {
-            this.entities = entities;
+        this.io.on("new_entities", (entities) => {
+            entities.forEach((entity) => {
+                let e = new Entity();
+                e.pose.from_other(entity.pose)
+                e.id = entity.id;
+                e.svg_data = entity.svg_data;
+
+                //TODO: Update hitbox
+
+
+
+                e.reload_image();
+                this.entities.push(e);
+            });
+
             this.viewport.render();
 
         });
-        this.io.emit("register_viewport", this.viewport)
+
+        this.io.on("moved_entities", (entities) => {
+            entities.forEach((entity) => {
+                let e = this.entities.find((e) => e.id == entity.id);
+                e.pose.from_other(entity.pose);
+            });
+
+            this.viewport.render();
+        });
+
+        this.io.emit("register_viewport", this.viewport.view_rect)
 
     }
 
@@ -21453,7 +21312,7 @@ class GameView extends Page
 }
 
 module.exports = GameView;
-},{"../engine":8,"slitan":41}],72:[function(require,module,exports){
+},{"../engine/utils/Rect.js":2,"./lib/DOMViewport":68,"./lib/Entity.js":69,"slitan":36}],67:[function(require,module,exports){
 const { EntryPoint } = require('slitan')
 
 class Index extends EntryPoint
@@ -21469,4 +21328,85 @@ class Index extends EntryPoint
 
 let index = new Index()
 index.start()
-},{"./GameView":71,"slitan":41}]},{},[72]);
+},{"./GameView":66,"slitan":36}],68:[function(require,module,exports){
+const Rect = require('../../engine/utils/Rect.js');
+
+class DOMViewport {
+
+  constructor(entities, dom_id, dom_width, dom_height, view_rect) {
+    
+    this.dom_width = dom_width;
+    this.dom_height = dom_height;
+
+    this.center = view_rect.center;
+    this.entities = entities;
+
+    this.view_rect = view_rect;
+
+    this.canvas = document.getElementById(dom_id);
+    this.ctx = this.canvas.getContext("2d");
+
+    this.canvas.width = dom_width;
+    this.canvas.height = dom_height;
+  }
+
+
+  render()
+  {
+    let entities = this.entities;
+    
+    let center = this.view_rect.center;
+    //Set canvas to be game_width x game_height, centered on the center pose
+    this.ctx.setTransform(this.dom_width / this.view_rect.width, 0, 0, this.dom_height / this.view_rect.height, 0, 0);
+    this.ctx.translate(-center.x + this.view_rect.width / 2, -center.y + this.view_rect.height / 2);
+
+    //Clear the canvas
+    this.ctx.clearRect(center.x - this.view_rect.width / 2, center.y - this.view_rect.height / 2, this.view_rect.width, this.view_rect.height);
+
+    //Draw all entities
+    for (let entity of entities)
+    {
+      entity.draw(this.ctx);
+    }
+  }
+
+}
+
+module.exports = DOMViewport;
+},{"../../engine/utils/Rect.js":2}],69:[function(require,module,exports){
+const Pose = require('../../engine/utils/Pose.js');
+const Rect = require('../../engine/utils/Rect.js');
+const uuidv4 = require('uuid').v4;
+
+class Entity
+{
+    constructor()
+    {
+        this.id = uuidv4();
+        this.pose = new Pose();
+        this.name = "UNSET";
+        this.hitbox = new Rect();
+        this.svg_data = "<svg></svg>";
+    }
+
+    reload_image()
+    {
+        const blob = new Blob([this.svg_data], { type: 'image/svg+xml' });
+        this.image = new Image();
+        this.image.src = URL.createObjectURL(blob);
+    }
+
+    draw(ctx)
+    {
+
+
+        ctx.save(); // Save the current canvas state
+        ctx.translate(this.pose.x, this.pose.y); // Move the origin to the player's position
+        ctx.rotate(this.pose.angle); // Rotate the canvas by the player's angle
+        ctx.drawImage(this.image, -this.image.width/2, -this.image.height/2); // Draw the image centered on the origin
+        ctx.restore(); // Restore the saved canvas state
+    }
+}
+
+module.exports = Entity;
+},{"../../engine/utils/Pose.js":1,"../../engine/utils/Rect.js":2,"uuid":50}]},{},[67]);

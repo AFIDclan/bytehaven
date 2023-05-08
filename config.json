@@ -4,6 +4,6 @@
     },
     "webservice": {
         "port": 1346,
-        "address": "localhost"
+        "address": "0.0.0.0"
     }
 }
