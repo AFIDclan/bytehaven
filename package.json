@@ -4,13 +4,18 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "watch": "npx slitan-watch ./index.js ./public/",
-    "build": "npx slitan-build ./index.js ./public/"
+    "watch": "npx slitan-watch ./webapp/index.js ./webapp/public/",
+    "build": "npx slitan-build ./webapp/index.js ./webapp/public/"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "morgan": "^1.10.0",
     "slitan": "bitbucket:novadynamics/slitan#1.0.7",
-    "uuid": "^9.0.0"
+    "socket.io": "^4.6.1",
+    "uuid": "^9.0.0",
+    "yalls": "^0.6.0"
   }
 }

@@ -25,9 +25,12 @@ class Engine
     update()
     {
         for (let entity of this.entities)
-        {
             entity.update();
-        }
+        
+
+        for (let viewport of this.viewports)
+            viewport.render();
+
     }
 }
 
