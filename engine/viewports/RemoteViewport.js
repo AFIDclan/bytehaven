@@ -9,34 +9,18 @@ class RemoteViewport extends Viewport {
 
     this.seen_entities = [];
 
+    this.remote_sock.on("viewport_update", (view_rect) => {
+      this.view_rect = Rect.from_json(view_rect);
+      });
   }
 
   render()
   {
     //Cull entities that are outside the viewport
-    // let entities = this.engine.entities.filter((entity) => {
-    //     return entity.in_viewport(this);
-    // });
-
-    let entities = this.engine.entities;
-
-    entities.forEach((entity) => {
-      if (!entity.velocity)
-        return;
-
-      if (entity.hitbox.x < this.view_rect.x)
-        entity.velocity.x = Math.abs(entity.velocity.x);
-
-      if (entity.hitbox.x + entity.hitbox.width > this.view_rect.x + this.view_rect.width)
-        entity.velocity.x = -Math.abs(entity.velocity.x);
-
-      if (entity.hitbox.y < this.view_rect.y)
-        entity.velocity.y = Math.abs(entity.velocity.y);
-
-      if (entity.hitbox.y + entity.hitbox.height > this.view_rect.y + this.view_rect.height)
-        entity.velocity.y = -Math.abs(entity.velocity.y);
-
+    let entities = this.engine.entities.filter((entity) => {
+        return entity.in_viewport(this);
     });
+
 
     let new_entities = entities.filter((entity) => {
         return !this.seen_entities.includes(entity);
@@ -58,8 +42,8 @@ class RemoteViewport extends Viewport {
     if (moved_entities.length)
       this.remote_sock.emit("moved_entities", moved_entities.map((entity) => ({id: entity.id, pose: entity.pose})));
 
-    // if (removed_entities.length)
-    //   this.remote_sock.emit("removed_entities", removed_entities.map((entity) => entity.id));
+    if (removed_entities.length)
+      this.remote_sock.emit("removed_entities", removed_entities.map((entity) => entity.id));
   }
 
 }

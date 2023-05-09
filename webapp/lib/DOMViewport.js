@@ -19,7 +19,15 @@ class DOMViewport {
     this.canvas.height = dom_height;
   }
 
-
+  screen_to_world(screen_pos)
+  {
+    let center = this.view_rect.center;
+    let scale = this.dom_width / this.view_rect.width;
+    let x = screen_pos.x / scale + center.x - this.view_rect.width / 2;
+    let y = screen_pos.y / scale + center.y - this.view_rect.height / 2;
+    return {x: x, y: y};
+  }
+  
   render()
   {
     let entities = this.entities;
