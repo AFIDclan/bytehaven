@@ -61,7 +61,7 @@ info_log_stream._write = (chunk, encoding, done) => {
   io_server
   .on('connection', (sock) => {
     sock.on("register_viewport", (vp) => {
-        log.info(`Registering viewport: ${vp.x}, ${vp.y}, ${vp.width}, ${vp.height}`)
+        log.info(`Registering viewport: ${vp.x}, ${vp.y}, ${vp.size.x}, ${vp.size.y}`)
         game.add_remote_viewport(sock, vp);
     });
   })

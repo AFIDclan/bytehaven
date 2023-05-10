@@ -22,9 +22,9 @@ class DOMViewport {
   screen_to_world(screen_pos)
   {
     let center = this.view_rect.center;
-    let scale = this.dom_width / this.view_rect.width;
-    let x = screen_pos.x / scale + center.x - this.view_rect.width / 2;
-    let y = screen_pos.y / scale + center.y - this.view_rect.height / 2;
+    let scale = this.dom_width / this.view_rect.size.x;
+    let x = screen_pos.x / scale + center.x - this.view_rect.size.x / 2;
+    let y = screen_pos.y / scale + center.y - this.view_rect.size.y / 2;
     return {x: x, y: y};
   }
   
@@ -34,11 +34,11 @@ class DOMViewport {
     
     let center = this.view_rect.center;
     //Set canvas to be game_width x game_height, centered on the center pose
-    this.ctx.setTransform(this.dom_width / this.view_rect.width, 0, 0, this.dom_height / this.view_rect.height, 0, 0);
-    this.ctx.translate(-center.x + this.view_rect.width / 2, -center.y + this.view_rect.height / 2);
+    this.ctx.setTransform(this.dom_width / this.view_rect.size.x, 0, 0, this.dom_height / this.view_rect.size.y, 0, 0);
+    this.ctx.translate(-center.x + this.view_rect.size.x / 2, -center.y + this.view_rect.size.y / 2);
 
     //Clear the canvas
-    this.ctx.clearRect(center.x - this.view_rect.width / 2, center.y - this.view_rect.height / 2, this.view_rect.width, this.view_rect.height);
+    this.ctx.clearRect(center.x - this.view_rect.size.x / 2, center.y - this.view_rect.size.y / 2, this.view_rect.size.x, this.view_rect.size.y);
 
     //Draw all entities
     for (let entity of entities)

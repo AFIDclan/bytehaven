@@ -6,7 +6,7 @@ class PhysicsEntity extends Entity
 {
     constructor(svg_data, name="PhysicsEntity")
     {
-        super(svg_data, new Rect(0, 0, 20, 20), name);
+        super(svg_data, Rect.from_coordinates(0, 0, 20, 20), name);
 
         this.velocity = new Pose(0, 0, 0);
     }

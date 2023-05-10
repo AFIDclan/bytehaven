@@ -21,11 +21,13 @@ class Pose extends Vec2 {
 
     after(other)
     {
-        //Return a new pose that is the result of applying this pose after the other pose
+        //Return a new pose that is the result of applying this pose in the coordinate system of the other pose
         let result = new Pose();
-        result.x = this.x + other.x * Math.cos(this.angle) - other.y * Math.sin(this.angle);
-        result.y = this.y + other.x * Math.sin(this.angle) + other.y * Math.cos(this.angle);
+        result.x = this.x * Math.cos(other.angle) - this.y * Math.sin(other.angle) + other.x;
+        result.y = this.x * Math.sin(other.angle) + this.y * Math.cos(other.angle) + other.y;
         result.angle = this.angle + other.angle;
+
+        
         return result;
     }
 
@@ -40,113 +42,228 @@ class Pose extends Vec2 {
 
 module.exports = Pose;
 },{"./Vec2":3}],2:[function(require,module,exports){
+const Vec2 = require('./Vec2');
 
-
-class Rect
-{
-    constructor(x=0, y=0, width=0, height=0)
-    {
-        this._x = x;
-        this._y = y;
-        this._width = width;
-        this._height = height;
-        
+/**
+ * A rectangle class defined by a center position, a size, and a rotation angle (in radians).
+ *
+ * @class
+ */
+class Rect {
+    /**
+     * Creates a new rectangle with the given center position, size, and rotation angle.
+     *
+     * @constructor
+     * @param {Vec2} [center=new Vec2()] - The center position of the rectangle.
+     * @param {Vec2} [size=new Vec2()] - The size of the rectangle.
+     * @param {number} [angle=0] - The rotation angle of the rectangle (in radians).
+     */
+    constructor(center = new Vec2(), size = new Vec2(), angle = 0) {
+        this.center = center;
+        this.size = size;
+        this.angle = angle;
+        this.update_corners();
     }
 
-    intersects(other)
-    {
-        //TODO: This may be wrong
-        return this.left < other.right && this.right > other.left && this.top < other.bottom && this.bottom > other.top;
+
+    /**
+     * Updates the rectangle's center position, size, and rotation angle based on the given pose.
+     * @param {Pose} pose - The pose to update the rectangle from.
+     */
+
+    update_from_pose(pose) {
+        this.center = pose.position;
+        this.angle = pose.angle;
+        this.update_corners();
     }
 
-    set x(x)
-    {
-        this._x = x;
+    /**
+     * Updates the corner positions of the rectangle based on its center position, size, and rotation angle.
+     *
+     * @private
+     */
+    update_corners() {
+        const half_size = this.size.scale(0.5);
+        const cos = Math.cos(this.angle);
+        const sin = Math.sin(this.angle);
+        this.corners = [
+            new Vec2(this.center.x - half_size.x * cos - half_size.y * sin, this.center.y + half_size.x * sin - half_size.y * cos),
+            new Vec2(this.center.x + half_size.x * cos - half_size.y * sin, this.center.y - half_size.x * sin - half_size.y * cos),
+            new Vec2(this.center.x + half_size.x * cos + half_size.y * sin, this.center.y - half_size.x * sin + half_size.y * cos),
+            new Vec2(this.center.x - half_size.x * cos + half_size.y * sin, this.center.y + half_size.x * sin + half_size.y * cos)
+        ];
     }
 
-    set y(y)
-    {
-        this._y = y;
+    get width() {
+        return this.size.x;
     }
 
-    set width(width)
-    {
-        this._width = width;
+    get height() {
+        return this.size.y;
     }
 
-    set height(height)
-    {
-        this._height = height;
+    /**
+     * Creates a new rectangle from the given coordinates (x, y, width, height).
+     *
+     * @static
+     * @param {number} x - The x-coordinate of the rectangle's top-left corner.
+     * @param {number} y - The y-coordinate of the rectangle's top-left corner.
+     * @param {number} width - The width of the rectangle.
+     * @param {number} height - The height of the rectangle.
+     * @returns {Rect} A new rectangle created from the given coordinates.
+     */
+    static from_coordinates(x, y, width, height) {
+        let center = new Vec2(x + width / 2, y + height / 2);
+        let size = new Vec2(width, height);
+        return new Rect(center, size);
     }
 
-    get x()
-    {
-        return this._x;
+
+    static from_json(json) {
+        return new Rect(
+            Vec2.from_json(json.center),
+            Vec2.from_json(json.size),
+            json.angle
+        );   
     }
 
-    get y()
-    {
-        return this._y;
+
+    /**
+     * Returns true if this rectangle intersects another rectangle
+     *
+     * @param {Rect} other - The other rotated rectangle to test for intersection.
+     */
+    intersects(other) {
+        // Get the separating axes
+        let axes = this.get_separating_axes().concat(other.get_separating_axes());
+
+        // Check overlap for each axis
+        for (let axis of axes) {
+            if (!this.overlaps_on_axis(axis, other)) {
+                // Separation found
+                return false;
+            }
+        }
+
+        // No separation found
+        return true;
     }
 
-    get width()
-    {
-        return this._width;
+    /**
+   * Returns true if this rectangle overlaps another rectangle on the given axis.
+   *
+   * @param {Vec2} axis - The axis to test for overlap on.
+   * @param {Rect} other - The other rectangle to test for overlap with.
+   * @returns {boolean} True if the two rectangles overlap on the given axis, false otherwise.
+   */
+    overlaps_on_axis(axis, other) {
+        // Project both shapes onto the axis
+        let projectionA = this.project_onto_axis(axis);
+        let projectionB = other.project_onto_axis(axis);
+
+        // Check for overlap on the axis
+        return projectionA[0] < projectionB[1] && projectionB[0] < projectionA[1];
     }
 
-    get height()
-    {
-        return this._height;
+    /**
+     * Projects the corners of the rectangle onto the given axis, and returns the min and max dot products.
+     *
+     * @param {Vec2} axis - The axis to project the corners onto.
+     * @returns {number[]} An array containing the min and max dot products of the corners projected onto the axis.
+     */
+    project_onto_axis(axis) {
+        let dots = this.corners.map(corner => corner.dot(axis));
+        return [Math.min(...dots), Math.max(...dots)];
     }
 
-    get center()
-    {
-        return {x: this._x + this._width / 2, y: this._y + this._height / 2};
+    /**
+     * Returns the separating axes of this rectangle.
+     *
+     * The separating axes of a rectangle are its normal vectors (normal to its edges).
+     *
+     * @returns {Vec2[]} An array containing the separating axes of this rectangle.
+     */
+    get_separating_axes() {
+        return [
+            this.corners[1].subtract(this.corners[0]).normalize(),
+            this.corners[1].subtract(this.corners[2]).normalize()
+        ];
     }
-
-    get left()
-    {
-        return this._x;
-    }
-
-    get right()
-    {
-        return this._x + this._width;
-    }
-
-    get top()
-    {
-        return this._y;
-    }
-
-    get bottom()
-    {
-        return this._y + this._height;
-    }
-
-    toJSON()
-    {
-        return {x: this._x, y: this._y, width: this._width, height: this._height};
-    }
-
-    static from_json(json)
-    {   
-        return new Rect(json.x, json.y, json.width, json.height);
-    }
-    
 }
 
 module.exports = Rect;
-},{}],3:[function(require,module,exports){
-
+},{"./Vec2":3}],3:[function(require,module,exports){
+/**
+ * A 2-dimensional vector class.
+ *
+ * @class
+ */
 class Vec2 {
-    constructor(x=0, y=0) {
-        this.x = x;
-        this.y = y;
+    /**
+     * Creates a new vector with the given x and y components.
+     *
+     * @constructor
+     * @param {number} [x=0] - The x component of the vector.
+     * @param {number} [y=0] - The y component of the vector.
+     */
+    constructor(x = 0, y = 0) {
+      this.x = x;
+      this.y = y;
     }
-}
+  
+    /**
+     * Returns the result of subtracting another vector from this vector.
+     *
+     * @param {Vec2} other - The other vector to subtract from this vector.
+     * @returns {Vec2} A new vector representing the result of the subtraction.
+     */
+    subtract(other) {
+      return new Vec2(this.x - other.x, this.y - other.y);
+    }
+  
+    /**
+     * Returns a new vector that is scaled by the given factor.
+     *
+     * @param {number} factor - The factor to scale the vector by.
+     * @returns {Vec2} A new vector that is scaled by the given factor.
+     */
+    scale(factor) {
+      return new Vec2(this.x * factor, this.y * factor);
+    }
+  
+    /**
+     * Returns the dot product of this vector and another vector.
+     *
+     * @param {Vec2} other - The other vector to take the dot product with.
+     * @returns {number} The dot product of this vector and the other vector.
+     */
+    dot(other) {
+      return this.x * other.x + this.y * other.y;
+    }
+  
+    /**
+     * Returns a new vector that has the same direction as this vector, but with a length of 1.
+     *
+     * If the length of the vector is 0, this method returns a new vector with both x and y components set to 0.
+     *
+     * @returns {Vec2} A new vector with length 1 that has the same direction as this vector.
+     */
+    normalize() {
+      const length = Math.sqrt(this.x * this.x + this.y * this.y);
+      if (length === 0) {
+        return new Vec2();
+      } else {
+        return new Vec2(this.x / length, this.y / length);
+      }
+    }
 
-module.exports = Vec2;
+    static from_json(json) {
+        return new Vec2(json.x, json.y);
+    }
+  }
+  
+  module.exports = Vec2;
+  
 },{}],4:[function(require,module,exports){
 
 /**
@@ -21288,7 +21405,7 @@ class GameView extends Page
         let game_width = 3000;
         let game_height = game_width / aspect_ratio;
 
-        let game_view_rect  = new Rect(-game_width / 2, -game_height / 2, game_width, game_height);
+        let game_view_rect  = Rect.from_coordinates(-game_width / 2, -game_height / 2, game_width, game_height);
 
         this.viewport = new DOMViewport(this.entities, "game-viewport", dom_width, dom_height, game_view_rect);
 
@@ -21357,10 +21474,10 @@ class GameView extends Page
             let dx = e.clientX - last_mouse_pos.x;
             let dy = e.clientY - last_mouse_pos.y;
             
-            let scale = this.viewport.view_rect.width / this.viewport.dom_width;
+            let scale = this.viewport.view_rect.size.x / this.viewport.dom_width;
 
-            this.viewport.view_rect.x -= dx * scale;
-            this.viewport.view_rect.y -= dy * scale;
+            this.viewport.view_rect.center.x -= dx * scale;
+            this.viewport.view_rect.center.y -= dy * scale;
             last_mouse_pos = {x: e.clientX, y: e.clientY};
 
             this.io.emit("viewport_update", this.viewport.view_rect)
@@ -21371,19 +21488,19 @@ class GameView extends Page
         $("#game-viewport").on("wheel", (e) => {
             let delta = Math.sign(e.originalEvent.deltaY) * 100;
 
-            if (this.viewport.view_rect.width + delta < 400 || this.viewport.view_rect.height + delta < 400)
+            if (this.viewport.view_rect.size.x + delta < 400 || this.viewport.view_rect.size.y + delta < 400)
                 return;
 
-            if (this.viewport.view_rect.width + delta > 5000 || this.viewport.view_rect.height + delta > 5000)
+            if (this.viewport.view_rect.size.x + delta > 5000 || this.viewport.view_rect.size.y + delta > 5000)
                 return;
 
-            let aspect_ratio = this.viewport.view_rect.width / this.viewport.view_rect.height;
+            let aspect_ratio = this.viewport.view_rect.size.x / this.viewport.view_rect.size.y;
 
             let delta_x = delta * aspect_ratio;
             let delta_y = delta;
 
-            this.viewport.view_rect.width += delta_x;
-            this.viewport.view_rect.height += delta_y;
+            this.viewport.view_rect.size.x += delta_x;
+            this.viewport.view_rect.size.y += delta_y;
 
             this.viewport.view_rect.x -= delta_x / 2;
             this.viewport.view_rect.y -= delta_y / 2;
@@ -21441,9 +21558,9 @@ class DOMViewport {
   screen_to_world(screen_pos)
   {
     let center = this.view_rect.center;
-    let scale = this.dom_width / this.view_rect.width;
-    let x = screen_pos.x / scale + center.x - this.view_rect.width / 2;
-    let y = screen_pos.y / scale + center.y - this.view_rect.height / 2;
+    let scale = this.dom_width / this.view_rect.size.x;
+    let x = screen_pos.x / scale + center.x - this.view_rect.size.x / 2;
+    let y = screen_pos.y / scale + center.y - this.view_rect.size.y / 2;
     return {x: x, y: y};
   }
   
@@ -21453,11 +21570,11 @@ class DOMViewport {
     
     let center = this.view_rect.center;
     //Set canvas to be game_width x game_height, centered on the center pose
-    this.ctx.setTransform(this.dom_width / this.view_rect.width, 0, 0, this.dom_height / this.view_rect.height, 0, 0);
-    this.ctx.translate(-center.x + this.view_rect.width / 2, -center.y + this.view_rect.height / 2);
+    this.ctx.setTransform(this.dom_width / this.view_rect.size.x, 0, 0, this.dom_height / this.view_rect.size.y, 0, 0);
+    this.ctx.translate(-center.x + this.view_rect.size.x / 2, -center.y + this.view_rect.size.y / 2);
 
     //Clear the canvas
-    this.ctx.clearRect(center.x - this.view_rect.width / 2, center.y - this.view_rect.height / 2, this.view_rect.width, this.view_rect.height);
+    this.ctx.clearRect(center.x - this.view_rect.size.x / 2, center.y - this.view_rect.size.y / 2, this.view_rect.size.x, this.view_rect.size.y);
 
     //Draw all entities
     for (let entity of entities)
@@ -21503,7 +21620,7 @@ class Entity
 
         //Draw hitbox
         ctx.strokeStyle = "red";
-        ctx.strokeRect(-this.hitbox.width/2, -this.hitbox.height/2, this.hitbox.width, this.hitbox.height);
+        ctx.strokeRect(-this.hitbox.size.x/2, -this.hitbox.size.y/2, this.hitbox.size.x, this.hitbox.size.y);
         
         ctx.restore(); // Restore the saved canvas state
     }

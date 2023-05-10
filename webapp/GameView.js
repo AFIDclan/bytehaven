@@ -19,7 +19,7 @@ class GameView extends Page
         let game_width = 3000;
         let game_height = game_width / aspect_ratio;
 
-        let game_view_rect  = new Rect(-game_width / 2, -game_height / 2, game_width, game_height);
+        let game_view_rect  = Rect.from_coordinates(-game_width / 2, -game_height / 2, game_width, game_height);
 
         this.viewport = new DOMViewport(this.entities, "game-viewport", dom_width, dom_height, game_view_rect);
 
@@ -88,10 +88,10 @@ class GameView extends Page
             let dx = e.clientX - last_mouse_pos.x;
             let dy = e.clientY - last_mouse_pos.y;
             
-            let scale = this.viewport.view_rect.width / this.viewport.dom_width;
+            let scale = this.viewport.view_rect.size.x / this.viewport.dom_width;
 
-            this.viewport.view_rect.x -= dx * scale;
-            this.viewport.view_rect.y -= dy * scale;
+            this.viewport.view_rect.center.x -= dx * scale;
+            this.viewport.view_rect.center.y -= dy * scale;
             last_mouse_pos = {x: e.clientX, y: e.clientY};
 
             this.io.emit("viewport_update", this.viewport.view_rect)
@@ -102,19 +102,19 @@ class GameView extends Page
         $("#game-viewport").on("wheel", (e) => {
             let delta = Math.sign(e.originalEvent.deltaY) * 100;
 
-            if (this.viewport.view_rect.width + delta < 400 || this.viewport.view_rect.height + delta < 400)
+            if (this.viewport.view_rect.size.x + delta < 400 || this.viewport.view_rect.size.y + delta < 400)
                 return;
 
-            if (this.viewport.view_rect.width + delta > 5000 || this.viewport.view_rect.height + delta > 5000)
+            if (this.viewport.view_rect.size.x + delta > 5000 || this.viewport.view_rect.size.y + delta > 5000)
                 return;
 
-            let aspect_ratio = this.viewport.view_rect.width / this.viewport.view_rect.height;
+            let aspect_ratio = this.viewport.view_rect.size.x / this.viewport.view_rect.size.y;
 
             let delta_x = delta * aspect_ratio;
             let delta_y = delta;
 
-            this.viewport.view_rect.width += delta_x;
-            this.viewport.view_rect.height += delta_y;
+            this.viewport.view_rect.size.x += delta_x;
+            this.viewport.view_rect.size.y += delta_y;
 
             this.viewport.view_rect.x -= delta_x / 2;
             this.viewport.view_rect.y -= delta_y / 2;

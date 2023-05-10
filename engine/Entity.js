@@ -28,6 +28,7 @@ class Entity
         //TODO: Hitbox needs to rotate with the entity?
         this.hitbox.x = this.pose.x;
         this.hitbox.y = this.pose.y;
+        this.hitbox.angle = this.pose.angle;
 
         //Check if the entity moved last frame
         this.moved_last_frame = this.pose.x != this.last_pose.x || this.pose.y != this.last_pose.y || this.pose.angle != this.last_pose.angle;
@@ -47,9 +48,14 @@ class Entity
         }
     }
 
+    collides_with(other)
+    {
+        return this.hitbox.intersects(other.hitbox);
+    }
+
     on_collision(other)
     {
-        console.log("Collision between " + this.name + " and " + other.name)
+        //console.log("Collision between " + this.name + " and " + other.name)
     }
 }
 
