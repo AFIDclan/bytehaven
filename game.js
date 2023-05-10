@@ -13,10 +13,10 @@ class Game extends EventEmitter
         this.engine = new Engine();
 
 
-        let player = new Player("jvs", "green");
+        let player = new Player(this.engine, "jvs", "green");
         player.pose.angle = 2
         
-        let player2 = new Player("ss", "blue");
+        let player2 = new Player(this.engine, "ss", "blue");
         player2.pose.angle = -2
         player2.pose.x = 10
         
@@ -29,24 +29,28 @@ class Game extends EventEmitter
             player.pose.turn(0.03)
             player2.pose.step_forward(1)
             player2.pose.turn(0.01)
-        
+            
+            //Check for collisions
+            for (let entity of this.engine.entities)
+            {
+                for (let other_entity of this.engine.entities)
+                {
+                    if (entity.id != other_entity.id)
+                    {
+                        if (entity.hitbox.intersects(other_entity.hitbox))
+                        {
+                            entity.on_collision(other_entity);
+                        }
+                    }
+                } 
+            }
+
             this.engine.update();
         }, 1000/60);
         
         setInterval(()=>{
-            let bullet = new PhysicsEntity(bullet_svg);
-            bullet.pose.x = player.pose.x;
-            bullet.pose.y = player.pose.y;
-            bullet.pose.angle = player.pose.angle;
-        
-            //Calculate velocity
-            bullet.velocity.x = 10 * Math.sin(bullet.pose.angle);
-            bullet.velocity.y = 10 * -Math.cos(bullet.pose.angle);
-        
-            this.engine.add_entity(bullet);
-    
-        
-        }, 1000)
+            player.fire()
+        }, 40)
     }
     
     add_remote_viewport(sock, view_rect)

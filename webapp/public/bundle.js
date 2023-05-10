@@ -19,6 +19,16 @@ class Pose extends Vec2 {
         this.angle += angle;
     }
 
+    after(other)
+    {
+        //Return a new pose that is the result of applying this pose after the other pose
+        let result = new Pose();
+        result.x = this.x + other.x * Math.cos(this.angle) - other.y * Math.sin(this.angle);
+        result.y = this.y + other.x * Math.sin(this.angle) + other.y * Math.cos(this.angle);
+        result.angle = this.angle + other.angle;
+        return result;
+    }
+
     from_other(other)
     {
         this.x = other.x;

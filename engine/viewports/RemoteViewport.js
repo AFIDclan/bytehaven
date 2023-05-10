@@ -33,7 +33,7 @@ class RemoteViewport extends Viewport {
     this.seen_entities = [...entities]
 
     if (new_entities.length)
-      this.remote_sock.emit("new_entities", new_entities);
+      this.remote_sock.emit("new_entities", new_entities.map((e)=>e.serialize()));
 
     let moved_entities = this.seen_entities.filter((entity) => {
         return entity.moved_last_frame;
