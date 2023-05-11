@@ -4,9 +4,9 @@ const Rect = require('./utils/Rect.js');
 
 class PhysicsEntity extends Entity
 {
-    constructor(svg_data, name="PhysicsEntity", serverside=true)
+    constructor(svg_data, name="PhysicsEntity")
     {
-        super(svg_data, new Rect(0, 0, 20, 20), name, serverside);
+        super(svg_data, Rect.from_coordinates(0, 0, 20, 20), name);
 
         this.velocity = new Pose(0, 0, 0);
     }

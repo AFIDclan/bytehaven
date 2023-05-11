@@ -22,29 +22,33 @@ class Entity
         return viewport.view_rect.intersects(this.hitbox);
     }
 
-    draw(ctx)
-    {
-
-
-        ctx.save(); // Save the current canvas state
-        ctx.translate(this.pose.x, this.pose.y); // Move the origin to the player's position
-        ctx.rotate(this.pose.angle); // Rotate the canvas by the player's angle
-        ctx.drawImage(this.image, -this.image.width/2, -this.image.height/2); // Draw the image centered on the origin
-        ctx.restore(); // Restore the saved canvas state
-    }
-
     update()
     {
 
         //TODO: Hitbox needs to rotate with the entity?
-        this.hitbox.x = this.pose.x;
-        this.hitbox.y = this.pose.y;
+        this.hitbox.update_from_pose(this.pose);
 
         //Check if the entity moved last frame
         this.moved_last_frame = this.pose.x != this.last_pose.x || this.pose.y != this.last_pose.y || this.pose.angle != this.last_pose.angle;
 
         //Update last pose
         this.last_pose.from_other(this.pose);
+    }
+
+    serialize()
+    {
+        return {
+            id: this.id,
+            pose: this.pose,
+            name: this.name,
+            hitbox: this.hitbox,
+            svg_data: this.svg_data
+        }
+    }
+
+    // To be overridden. Called when this entity collides with another entity
+    on_collision(other)
+    {
     }
 }
 

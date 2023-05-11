@@ -31,7 +31,7 @@ class Entity
 
         //Draw hitbox
         ctx.strokeStyle = "red";
-        ctx.strokeRect(-this.hitbox.width/2, -this.hitbox.height/2, this.hitbox.width, this.hitbox.height);
+        ctx.strokeRect(-this.hitbox.size.x/2, -this.hitbox.size.y/2, this.hitbox.size.x, this.hitbox.size.y);
         
         ctx.restore(); // Restore the saved canvas state
     }
