@@ -28,7 +28,7 @@ class Rect {
      */
 
     update_from_pose(pose) {
-        this.center = pose.position;
+        this.center = new Vec2(pose.x, pose.y);
         this.angle = pose.angle;
         this.update_corners();
     }
@@ -100,7 +100,6 @@ class Rect {
                 return false;
             }
         }
-
         // No separation found
         return true;
     }
