@@ -40,8 +40,17 @@ class Game extends EventEmitter
 
 
         
-        
+        this.updating = false;
+        this.last_update = Date.now();
+        this.last_update_rates = [];
+
         setInterval(() => {
+            if (this.updating)
+                return;
+
+            this.updating = true;
+
+            
             for (let team of teams)
             {
                 for (let player of team.players)
@@ -52,22 +61,18 @@ class Game extends EventEmitter
                 }
             }
             
-            //Check for collisions
-            for (let entity of this.engine.entities)
-            {
-                for (let other_entity of this.engine.entities)
-                {
-                    if (entity.id != other_entity.id)
-                    {
-                        if (entity.hitbox.intersects(other_entity.hitbox))
-                        {
-                            entity.on_collision(other_entity);
-                        }
-                    }
-                } 
-            }
+
 
             this.engine.update();
+
+            this.updating = false;
+            this.last_update_rates.push(Date.now() - this.last_update);
+
+            if (this.last_update_rates.length > 10)
+                this.last_update_rates.shift();
+
+            this.last_update = Date.now();
+
         }, 1000/60);
         
         setInterval(()=>{
@@ -79,6 +84,11 @@ class Game extends EventEmitter
                 }
             }
         }, 40)
+    }
+
+    get update_rate()
+    {
+        return this.last_update_rates.reduce((a, b) => a + b, 0) / this.last_update_rates.length;
     }
     
     add_remote_viewport(sock, view_rect)

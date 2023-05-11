@@ -27,6 +27,21 @@ class Engine
         for (let entity of this.entities)
             entity.update();
         
+        //Check for collisions
+        for (let entity of this.entities)
+        {
+            for (let other_entity of this.entities)
+            {
+                if (entity.id != other_entity.id)
+                {
+                    if (entity.hitbox.intersects(other_entity.hitbox))
+                    {
+                        entity.on_collision(other_entity);
+                    }
+                }
+            } 
+        }
+        
 
         for (let viewport of this.viewports)
             viewport.render();

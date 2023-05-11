@@ -58,6 +58,10 @@ info_log_stream._write = (chunk, encoding, done) => {
   let io_server = IO(server);
   let game = new Game();
 
+  setInterval(() => {
+    log.debug(`Update FPS: ${1000/game.update_rate}`)
+  }, 2000)
+
   io_server
   .on('connection', (sock) => {
     sock.on("register_viewport", (vp) => {
