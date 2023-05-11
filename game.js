@@ -12,23 +12,45 @@ class Game extends EventEmitter
         super()
         this.engine = new Engine();
 
+        let teams = [
+            {
+                id: "jvs",
+                color: "green",
+                players: []
+            },
+            {
+                id: "ss",
+                color: "blue",
+                players: []
+            }
+        ]
 
-        let player = new Player(this.engine, "jvs", "green");
-        player.pose.angle = 2
-        
-        let player2 = new Player(this.engine, "ss", "blue");
-        player2.pose.angle = -2
-        player2.pose.x = 10
-        
-        this.engine.add_entity(player);
-        this.engine.add_entity(player2);
+        for (let team of teams)
+        {
+            for (let i=0; i<20; i++)
+            {
+                let player = new Player(this.engine, team.id, team.color);
+                player.pose.x = 500-(Math.random() * 1000);
+                player.pose.y = 500-(Math.random() * 1000);
+                player.pose.angle = Math.random() * 2 * Math.PI;
+                this.engine.add_entity(player);
+                team.players.push(player);
+            }
+        }
+
+
         
         
         setInterval(() => {
-            player.pose.step_forward(3)
-            player.pose.turn(0.03)
-            player2.pose.step_forward(1)
-            player2.pose.turn(0.01)
+            for (let team of teams)
+            {
+                for (let player of team.players)
+                {
+
+                    //player.pose.step_forward(3)
+                    player.pose.turn(0.01)
+                }
+            }
             
             //Check for collisions
             for (let entity of this.engine.entities)
@@ -49,7 +71,13 @@ class Game extends EventEmitter
         }, 1000/60);
         
         setInterval(()=>{
-            player.fire()
+            for (let team of teams)
+            {
+                for (let player of team.players)
+                {
+                    player.fire()
+                }
+            }
         }, 40)
     }
     
