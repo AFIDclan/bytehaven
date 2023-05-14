@@ -17,7 +17,7 @@ class GameView extends Page
     async load() {
 
         let images = [
-            "player_red.svg", 
+            "player_red.png", 
             "player_blue.svg", 
             "player_green.svg",
             "bullet.svg"
