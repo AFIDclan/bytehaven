@@ -4,7 +4,6 @@ const Player = require('./lib/Player.js');
 const EventEmitter = require('events')
 const fs = require('fs');
 
-const bullet_svg = fs.readFileSync("./lib/bullet.svg", 'utf8');
 class Game extends EventEmitter
 {
     constructor()
@@ -73,7 +72,7 @@ class Game extends EventEmitter
 
             this.last_update = Date.now();
 
-        }, 1000/60);
+        }, 15);
         
         setInterval(()=>{
             for (let team of teams)

@@ -4,7 +4,7 @@ const uuidv4 = require('uuid').v4;
 
 class Entity
 {
-    constructor(svg_data, hitbox=new Rect(), name="Player")
+    constructor(image_path, hitbox=new Rect(), name="Player")
     {
         this.id = uuidv4();
         this.pose = new Pose(0, 0, 0);
@@ -12,7 +12,7 @@ class Entity
         this.name = name;
         this.hitbox = hitbox;
         this.moved_last_frame = false;
-        this.svg_data = svg_data;
+        this.image_path = image_path;
 
         
     }
@@ -42,7 +42,7 @@ class Entity
             pose: this.pose,
             name: this.name,
             hitbox: this.hitbox,
-            svg_data: this.svg_data
+            image_path: this.image_path
         }
     }
 

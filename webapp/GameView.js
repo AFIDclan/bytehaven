@@ -10,6 +10,27 @@ class GameView extends Page
         // Run this page only on when the 'page=calendar' query params is true
         super("gameview", "/"); 
         
+        
+
+    }
+
+    async load() {
+
+        let images = [
+            "player_red.svg", 
+            "player_blue.svg", 
+            "player_green.svg",
+            "bullet.svg"
+        ]
+
+        // GET svgs and load into an IMAGE object using $.GET
+        this.images = images.map((imagepath) => {
+            let img = new Image();
+            img.src = "svg/" + imagepath;
+            return {name: imagepath, svg: img};
+        })
+
+
         this.entities = [];
 
         let dom_width = document.body.clientWidth-100;
@@ -29,13 +50,21 @@ class GameView extends Page
                 let e = new Entity();
                 e.pose.from_other(entity.pose)
                 e.id = entity.id;
-                e.svg_data = entity.svg_data;
+
+                //let svg = this.images.find((i) => i.name == entity.image_path).svg;
+                let svg = this.images.find((i) => i.name == entity.image_path).svg;
+
+                console.log(entity.image_path)
+                
+                if (svg)
+                    e.image = svg
+                else
+                    console.log(entity)
+
                 e.hitbox = entity.hitbox;
                 //TODO: Update hitbox
 
 
-
-                e.reload_image();
                 this.entities.push(e);
 
             });
@@ -124,9 +153,7 @@ class GameView extends Page
             this.viewport.render();
         });
 
-    }
 
-    async load() {
     }
 }
 

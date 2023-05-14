@@ -27,7 +27,16 @@ class Engine
         for (let entity of this.entities)
             entity.update();
         
-        //Check for collisions
+        
+        //this.check_collisions();
+
+        for (let viewport of this.viewports)
+            viewport.render();
+
+    }
+
+    check_collisions()
+    {
         for (let entity of this.entities)
         {
             for (let other_entity of this.entities)
@@ -41,11 +50,6 @@ class Engine
                 }
             } 
         }
-        
-
-        for (let viewport of this.viewports)
-            viewport.render();
-
     }
 }
 
