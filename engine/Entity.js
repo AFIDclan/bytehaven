@@ -14,6 +14,8 @@ class Entity
         this.moved_last_frame = false;
         this.image_path = image_path;
 
+        this.map_location = null;
+
         
     }
 
