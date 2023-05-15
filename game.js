@@ -1,6 +1,9 @@
+const { set } = require('yalls/lib/utils');
 const { PhysicsEntity, Engine, Viewport } = require('./engine');
 const { RemoteViewport } = require('./engine');
+const Vec2 = require('./engine/utils/Vec2');
 const Player = require('./lib/Player.js');
+const Match = require('./Match.js');
 const EventEmitter = require('events')
 const fs = require('fs');
 
@@ -11,43 +14,40 @@ class Game extends EventEmitter
         super()
         this.log = log;
         this.engine = new Engine();
-        this.available_team_colors = fs.readdirSync("webapp/public/images").filter((file) => file.startsWith("player_")).map((file) => file.split("_")[1]).map((file) => file.split(".")[0]);
-    
-        let teams = [
-            {
-                id: "jvs",
-                color: "green",
-                players: []
-            },
-            {
-                id: "ss",
-                color: "blue",
-                players: []
-            }
-        ]
-
-        for (let team of teams)
-        {
-            for (let i=0; i<100; i++)
-            {
-                let player = new Player(this.engine, team.id, team.color);
-                player.pose.x = 500-(Math.random() * 1000);
-                player.pose.y = 500-(Math.random() * 1000);
-                player.pose.angle = Math.random() * 2 * Math.PI;
-
-                setInterval(()=>{
-                    player.fire()
-                }, i*10)
-                this.engine.add_entity(player);
-                team.players.push(player);
-            }
-        }
-
-
+       
         
         this.updating = false;
         this.last_update = Date.now();
         this.last_update_rates = [];
+
+        setInterval(async () => {
+            let match = await this.open_registration()
+            this.registering_match = null;
+
+            this.engine.remove_all_entities();
+
+            let spawn_points = [];
+
+            let _spawn_seg_len = 1000;
+            let _spawn_seg_delta = Math.PI * 2 / match.teams.length;
+
+            let _spawn_radius = _spawn_seg_len * match.teams.length / (2 * Math.PI);
+
+            for (let i = 0; i < match.teams.length; i++)
+            {
+                let angle = _spawn_seg_delta * i;
+                let x = Math.cos(angle) * _spawn_radius;
+                let y = Math.sin(angle) * _spawn_radius;
+
+                spawn_points.push(new Vec2(x, y));
+            }
+
+            match.spawn_teams(spawn_points);
+            this.match = match;
+
+            this.emit("match_started", match);
+
+        }, 5000);
 
         setInterval(() => {
             if (this.updating)
@@ -56,18 +56,6 @@ class Game extends EventEmitter
             this.updating = true;
 
             
-            for (let team of teams)
-            {
-                for (let player of team.players)
-                {
-
-                    //player.pose.step_forward(3)
-                    player.pose.turn(0.01)
-                }
-            }
-            
-
-
             this.engine.update();
 
             this.updating = false;
@@ -86,11 +74,45 @@ class Game extends EventEmitter
     {
         return this.last_update_rates.reduce((a, b) => a + b, 0) / this.last_update_rates.length;
     }
+
+    get_entities_for_sock(sock)
+    {
+        if (!this.match)
+            return [];
+
+        let team = this.match.get_team_for_sock(sock)
+        if (!team)
+            return [];
+
+        return team.players;
+    }
     
     add_remote_viewport(sock, view_rect)
     {
         let remote_viewport = new RemoteViewport(sock, this.engine, view_rect);
         this.engine.add_viewport(remote_viewport);
+    }
+
+    async open_registration()
+    {
+        this.registering_match = new Match(this.engine);
+
+        this.emit("registration_opened");
+
+        // Wait for teams to register
+        await new Promise((resolve, reject) => setTimeout(resolve, 2000));
+
+        this.emit("registration_closed");
+        
+        return this.registering_match;
+    }
+
+    register_team(sock, team)
+    {
+        if (!this.registering_match)
+            return;
+
+        this.registering_match.add_team(sock, team);
     }
 }
 

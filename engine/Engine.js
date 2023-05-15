@@ -29,6 +29,12 @@ class Engine
         this.entities = this.entities.filter((e) => e.id != entity.id);
     }
 
+    remove_all_entities()
+    {
+        this.entities = [];
+        this.entity_map = {};
+    }
+
     add_viewport(viewport)
     {
         this.viewports.push(viewport);

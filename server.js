@@ -14,7 +14,7 @@ const config = require("./config.json");
 const Game = require("./Game.js");
 
 const log = Logger.console(config.log.namespace || "tasking-manager", config.log);
-log.set_log_level(config["log_level"] || "debug");
+log.set_log_level(config.log.level || "debug");
 
 
 // A stream to pipe morgan (http logging) to bunyan
@@ -78,8 +78,22 @@ info_log_stream._write = (chunk, encoding, done) => {
         log.info(`Registering viewport: ${vp.center.x}, ${vp.center.y}, ${vp.size.x}, ${vp.size.y}`)
         game.add_remote_viewport(sock, vp);
     });
+
+    sock.on("register_team", (team) => {
+      log.info(`Registering team: ${team.name}`)
+      game.register_team(sock, team);
+    });
+
+    sock.on("get_players", (cb) => {
+      let e = game.get_entities_for_sock(sock);
+      cb(e.map((e) => e.serialize()));
+    });
   })
 
+  game.on("registration_opened", () => {
+    log.info("Registration opened");
+    io_server.local.emit("registration_opened");
+  });
 
   // Fire up the bass cannon
   server.listen(config['webservice'].port, config['webservice'].address);
