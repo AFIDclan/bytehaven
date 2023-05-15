@@ -30,6 +30,14 @@ class Pose extends Vec2 {
         return result;
     }
 
+    rotate_vec(other)
+    {
+        let result = new Vec2();
+        result.x = other.x * Math.cos(this.angle) - other.y * Math.sin(this.angle);
+        result.y = other.x * Math.sin(this.angle) + other.y * Math.cos(this.angle);
+        return result;
+    }
+
     from_other(other)
     {
         this.x = other.x;

@@ -84,6 +84,10 @@ info_log_stream._write = (chunk, encoding, done) => {
       game.register_team(sock, team);
     });
 
+    sock.on("command_list", (commands) => {
+      game.execute_commands(sock, commands);
+    });
+
     sock.on("get_players", (cb) => {
       let e = game.get_entities_for_sock(sock);
       cb(e.map((e) => e.serialize()));

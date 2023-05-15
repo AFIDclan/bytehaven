@@ -58,6 +58,14 @@ class Game extends EventEmitter
             
             this.engine.update();
 
+            if (this.match)
+            {
+                this.match.teams.forEach((team) => {
+                    team.socket.emit("update", {players: team.players.map((player) => player.serialize())});
+                });
+            }
+            
+
             this.updating = false;
             this.last_update_rates.push(Date.now() - this.last_update);
 
@@ -73,6 +81,23 @@ class Game extends EventEmitter
     get update_rate()
     {
         return this.last_update_rates.reduce((a, b) => a + b, 0) / this.last_update_rates.length;
+    }
+
+    execute_commands(sock, commands)
+    {
+        let team = this.match.get_team_for_sock(sock)
+
+        if (!team)
+            return;
+
+        commands.forEach((command) => {
+            let player = team.players.find((p)=> p.id == command.player_id);
+
+            if (!player)
+                return;
+
+            player.execute_command(command);
+        });
     }
 
     get_entities_for_sock(sock)
