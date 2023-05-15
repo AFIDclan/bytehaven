@@ -7,6 +7,7 @@ const stream = require('stream');
 const body_parser = require("body-parser");
 const cors = require("cors");
 const { Logger } = require("yalls");
+const fs = require("fs");
 
 const config = require("./config.json");
 
@@ -52,11 +53,20 @@ info_log_stream._write = (chunk, encoding, done) => {
   });
 
 
+  app.get("/images/", (req, res) => {
+    fs.readdir("webapp/public/images", (err, files) => {
+      if (!err) {
+        res.send(files.filter((f) => f.endsWith(".png")));
+      } else {
+        res.send([]);
+      }
 
+  });
+});
  
   // Set up socket.io server
   let io_server = IO(server);
-  let game = new Game();
+  let game = new Game(log.create_child("game"));
 
   setInterval(() => {
     log.debug(`Update FPS: ${1000/game.update_rate}`)

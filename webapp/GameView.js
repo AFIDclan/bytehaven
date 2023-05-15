@@ -15,18 +15,14 @@ class GameView extends Page
     }
 
     async load() {
+        // Get a list of .png files in the /images folder
+        let images = await $.get("images");
 
-        let images = [
-            "player_red.png", 
-            "player_blue.svg", 
-            "player_green.svg",
-            "bullet.svg"
-        ]
 
         // GET svgs and load into an IMAGE object using $.GET
         this.images = images.map((imagepath) => {
             let img = new Image();
-            img.src = "svg/" + imagepath;
+            img.src = "images/" + imagepath;
             return {name: imagepath, svg: img};
         })
 
@@ -54,7 +50,6 @@ class GameView extends Page
                 //let svg = this.images.find((i) => i.name == entity.image_path).svg;
                 let svg = this.images.find((i) => i.name == entity.image_path).svg;
 
-                console.log(entity.image_path)
                 
                 if (svg)
                     e.image = svg
@@ -70,11 +65,9 @@ class GameView extends Page
             });
 
             document.getElementById("entities-total-text").innerHTML = "Entities Total:" + this.entities.length;
-            this.viewport.render();
-
         });
 
-        this.io.on("moved_entities", (entities) => {
+        this.io.on("entities_moved", (entities) => {
             entities.forEach((entity) => {
                 let e = this.entities.find((e) => e.id == entity.id);
                 if (!e)
@@ -82,7 +75,6 @@ class GameView extends Page
                 e.pose.from_other(entity.pose);
             });
 
-            this.viewport.render();
         });
 
         this.io.on("removed_entities", (ids) => {
@@ -92,7 +84,6 @@ class GameView extends Page
             });
 
             document.getElementById("entities-total-text").innerHTML = "Entities Total:" + this.entities.length;
-            this.viewport.render();
         });
 
         this.io.emit("register_viewport", this.viewport.view_rect)
@@ -153,7 +144,9 @@ class GameView extends Page
             this.viewport.render();
         });
 
-
+        setInterval(() => {
+            this.viewport.render();
+        }, 15);
     }
 }
 

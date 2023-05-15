@@ -6,11 +6,13 @@ const fs = require('fs');
 
 class Game extends EventEmitter
 {
-    constructor()
+    constructor(log)
     {
         super()
+        this.log = log;
         this.engine = new Engine();
-
+        this.available_team_colors = fs.readdirSync("webapp/public/images").filter((file) => file.startsWith("player_")).map((file) => file.split("_")[1]).map((file) => file.split(".")[0]);
+    
         let teams = [
             {
                 id: "jvs",
@@ -26,12 +28,16 @@ class Game extends EventEmitter
 
         for (let team of teams)
         {
-            for (let i=0; i<20; i++)
+            for (let i=0; i<100; i++)
             {
                 let player = new Player(this.engine, team.id, team.color);
                 player.pose.x = 500-(Math.random() * 1000);
                 player.pose.y = 500-(Math.random() * 1000);
                 player.pose.angle = Math.random() * 2 * Math.PI;
+
+                setInterval(()=>{
+                    player.fire()
+                }, i*10)
                 this.engine.add_entity(player);
                 team.players.push(player);
             }
@@ -74,15 +80,6 @@ class Game extends EventEmitter
 
         }, 15);
         
-        setInterval(()=>{
-            for (let team of teams)
-            {
-                for (let player of team.players)
-                {
-                    player.fire()
-                }
-            }
-        }, 40)
     }
 
     get update_rate()

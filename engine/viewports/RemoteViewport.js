@@ -40,7 +40,7 @@ class RemoteViewport extends Viewport {
     });
 
     if (moved_entities.length)
-      this.remote_sock.emit("moved_entities", moved_entities.map((entity) => ({id: entity.id, pose: entity.pose})));
+      this.remote_sock.emit("entities_moved", moved_entities.map((entity) => ({id: entity.id, pose: entity.pose})));
 
     if (removed_entities.length)
       this.remote_sock.emit("removed_entities", removed_entities.map((entity) => entity.id));
