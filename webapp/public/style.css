@@ -1,0 +1,48 @@
+.hud-overlay {
+    position:absolute; 
+    font-size: larger;
+    width: 99vw; 
+    height: 90vh;
+
+    /*Disable pointer events and text selection*/
+
+    pointer-events: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+
+}
+
+.hud-overlay p {
+    position: absolute;
+}
+
+.leaderboard {
+    position: absolute;
+    right: 20px;
+    top: 0px;
+    display: flex;
+    flex-direction: column;
+}
+
+.leaderboard h3
+{
+    margin: auto;
+    padding-top: 30px;
+    border-bottom: 1px solid #eee;
+    width: 100%;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+team {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+teamname {
+    font-weight: bold;
+    padding-right: 10px;
+}

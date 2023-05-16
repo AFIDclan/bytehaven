@@ -5,13 +5,35 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Bytehaven</title>
+        <link rel="stylesheet" href="style.css">
+        <link rel="stylesheet" href="bundle.css">
+
     </head>
 
-    <body style="background-color: #343434;color: white;display: flex;height: 90vh;">
+    <body style="overflow: hidden;background-color: #343434;color: white;display: flex;height: 90vh;">
         <canvas id="game-viewport" style="border: 2px solid white;" width="600" height="400"></canvas>
-        <div style="padding-left: 15px; font-size: larger;">
-            <p id="entities-total-text"></p>
-            <p id="entities-viewport-text"></p>
+        <div class="hud-overlay">
+
+            <div>
+                <h3 id="time-till-match-start" style="margin: auto; width: fit-content;padding-top: 30px;">Time Till Next Match: --</h3>
+            </div>
+
+            <p id="entities-total-text" style="left:20px;top:10px">Entities Total: 0</p>
+            <p id="last-win-text" style="left:20px;top:32px">Last Win: <b id="last-win-text">--</b></p>
+
+            <div class="leaderboard">
+                <h3>Leaderboard</h3>
+                <div id="leaderboard-teams">
+
+                </div>
+
+                
+            </div>
+
+
+            
+
+            
         </div>
     </body>
     <script src="bundle.js"></script>

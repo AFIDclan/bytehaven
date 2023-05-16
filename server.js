@@ -99,6 +99,13 @@ info_log_stream._write = (chunk, encoding, done) => {
     io_server.local.emit("registration_opened");
   });
 
+  setInterval(() => {
+    io_server.local.emit("stats_update", {
+      time_till_match_start: game.time_till_match_start,
+      match_history: game.match_history
+    });
+  }, 1000);
+
   // Fire up the bass cannon
   server.listen(config['webservice'].port, config['webservice'].address);
 
