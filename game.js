@@ -65,7 +65,7 @@ class Game extends EventEmitter
 
             this.emit("match_started", match);
 
-        }, 5000*60);
+        }, 1000*60);
 
 
 
