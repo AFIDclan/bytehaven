@@ -29,7 +29,7 @@ class GameView extends Page
 
         this.entities = [];
 
-        let dom_width = document.body.clientWidth-100;
+        let dom_width = document.body.clientWidth;
         let dom_height = document.body.clientHeight;
         let aspect_ratio = dom_width / dom_height;
 
@@ -39,6 +39,31 @@ class GameView extends Page
         let game_view_rect  = Rect.from_coordinates(-game_width / 2, -game_height / 2, game_width, game_height);
 
         this.viewport = new DOMViewport(this.entities, "game-viewport", dom_width, dom_height, game_view_rect);
+
+        this.io.on("stats_update", (stats) => {
+            $("#time-till-match-start").html("Time Till Match Start: " + Math.round(stats.time_till_match_start / 1000) + "s");
+            $("#leaderboard-teams").empty()
+
+            if (stats.match_history > 0)
+            {
+                let teams = stats.match_history.reduce((acc, val) => {
+                    if (!acc[val.winner])
+                        acc[val.winner] = 0;
+                    acc[val.winner] += val.score;
+                    return acc;
+                }, {});
+    
+                for (let team of Object.keys(teams))
+                {
+                    let score = teams[team];
+                    $("#leaderboard-teams").append(`<team><teamname>${team}:</teamname><teamscore>${score}</teamscore></team>`)
+                }
+    
+                $("#last-win-text").html("Last Win: " + stats.match_history.slice(-1)[0].winner);
+            }
+
+        });
+
 
         this.io.on("new_entities", (entities) => {
 

@@ -5,6 +5,7 @@ const Vec2 = require('./engine/utils/Vec2');
 const Player = require('./lib/Player.js');
 const Match = require('./Match.js');
 const EventEmitter = require('events')
+const Timer = require('./Timer.js');
 const fs = require('fs');
 
 class Game extends EventEmitter
@@ -19,8 +20,9 @@ class Game extends EventEmitter
         this.updating = false;
         this.last_update = Date.now();
         this.last_update_rates = [];
+        this.match_history = [];
 
-        setInterval(async () => {
+        this.match_start_interval = new Timer(async () => {
             let match = await this.open_registration()
             this.registering_match = null;
 
@@ -43,11 +45,29 @@ class Game extends EventEmitter
             }
 
             match.spawn_teams(spawn_points);
+
+            if (this.match && this.match.teams.length > 1)
+            {
+                // Find this.match.teams with the most players
+                let most_players = this.match.teams.reduce((a, b) => a.players.length > b.players.length ? a : b);
+                
+                // Find how many more players the most has vs the runner up
+                let player_diff = most_players.players.length - this.match.teams.filter((team) => team != most_players).reduce((a, b) => a.players.length + b.players.length);
+
+                this.match_history.push({
+                    winner: most_players.team_name,
+                    score: player_diff
+                });
+            }
+
+
             this.match = match;
 
             this.emit("match_started", match);
 
-        }, 5000);
+        }, 5000*60);
+
+
 
         setInterval(() => {
             if (this.updating)
@@ -77,6 +97,15 @@ class Game extends EventEmitter
         }, 30);
         
     }
+
+    get time_till_match_start()
+    {
+        if (!this.match_start_interval)
+            return 0;
+
+        return this.match_start_interval.time_remaining;
+    }
+
 
     get update_rate()
     {
