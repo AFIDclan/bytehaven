@@ -74,7 +74,7 @@ class Game extends EventEmitter
 
             this.last_update = Date.now();
 
-        }, 15);
+        }, 30);
         
     }
 

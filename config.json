@@ -1,7 +1,7 @@
 {
     "log": {
         "namespace": "ByteHaven",
-        "level": "info"
+        "level": "debug"
     },
     "webservice": {
         "port": 1346,

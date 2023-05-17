@@ -73,16 +73,16 @@ class Engine
         }
     }
 
-    get_adjacent_entities(entity)
+    get_adjacent_entities(entity, grid_search_radius=1)
     {
         let x = entity.map_location.x;
         let y = entity.map_location.y;
 
         let adjacent_entities = [];
 
-        for (let i = x-1; i <= x+1; i++)
+        for (let i = x-grid_search_radius; i <= x+grid_search_radius; i++)
         {
-            for (let j = y-1; j <= y+1; j++)
+            for (let j = y-grid_search_radius; j <= y+grid_search_radius; j++)
             {
                 if (this.entity_map[i] != undefined && this.entity_map[i][j] != undefined)
                 {
