@@ -8,6 +8,8 @@ const EventEmitter = require('events')
 const Timer = require('./Timer.js');
 const fs = require('fs');
 
+
+
 class Game extends EventEmitter
 {
     constructor(log)
@@ -48,16 +50,20 @@ class Game extends EventEmitter
 
             if (this.match && this.match.teams.length > 1)
             {
-                // Find this.match.teams with the most players
-                let most_players = this.match.teams.reduce((a, b) => a.players.length > b.players.length ? a : b);
-                
-                // Find how many more players the most has vs the runner up
-                let player_diff = most_players.players.length - this.match.teams.filter((team) => team != most_players).reduce((a, b) => a.players.length + b.players.length);
+                // Sort teams by players left
+                let player_board = this.match.teams.sort((a, b) => b.players.length - a.players.length);
+
+
+                let most_players = player_board[0];
+                let runner_up = player_board[1];
+
+                let player_diff = most_players.players.length - runner_up.players.length;
 
                 this.match_history.push({
                     winner: most_players.team_name,
                     score: player_diff
                 });
+
             }
 
 
@@ -65,7 +71,7 @@ class Game extends EventEmitter
 
             this.emit("match_started", match);
 
-        }, 1000*60);
+        }, 1000*10);
 
 
 

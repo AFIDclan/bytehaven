@@ -3,6 +3,29 @@ const DOMViewport = require('./lib/DOMViewport');
 const Entity = require('./lib/Entity.js');
 const Rect = require('../engine/utils/Rect.js');
 
+
+const player_colors = [
+    ["red", "rgb(213, 47, 47)"],
+    ["pink", "rgb(240, 98, 146)"],
+    ["purple", "rgb(142, 36, 170)"],
+    ["deep-purple", "rgb(94, 53, 177)"],
+    ["indigo", "rgb(64, 81, 181)"],
+    ["blue", "rgb(25, 118, 210)"],
+    ["light-blue", "rgb(2, 136, 209)"],
+    ["cyan", "rgb(0, 151, 167)"],
+    ["teal", "rgb(0, 121, 107)"],
+    ["green", "rgb(56, 142, 60)"],
+    ["light-green", "rgb(104, 159, 56)"],
+    ["lime", "rgb(175, 180, 43)"],
+    ["yellow", "rgb(251, 192, 45)"],
+    ["amber", "rgb(255, 160, 0)"],
+    ["orange", "rgb(255, 87, 34)"],
+    ["deep-orange", "rgb(244, 81, 30)"],
+    ["brown", "rgb(121, 85, 72)"],
+    ["grey", "rgb(158, 158, 158)"],
+    ["blue-grey", "rgb(96, 125, 139)"]
+]
+
 class GameView extends Page 
 {
     constructor() {
@@ -43,13 +66,14 @@ class GameView extends Page
         this.io.on("stats_update", (stats) => {
             $("#time-till-match-start").html("Time Till Match Start: " + Math.round(stats.time_till_match_start / 1000) + "s");
             $("#leaderboard-teams").empty()
+            $("#current-match-teams").empty()
 
-            if (stats.match_history > 0)
+            if (stats.match_history.length > 0)
             {
                 let teams = stats.match_history.reduce((acc, val) => {
-                    if (!acc[val.winner])
-                        acc[val.winner] = 0;
-                    acc[val.winner] += val.score;
+                    if (!acc[val.winner.name])
+                        acc[val.winner.name] = 0;
+                    acc[val.winner.name] += val.score;
                     return acc;
                 }, {});
     
@@ -59,8 +83,24 @@ class GameView extends Page
                     $("#leaderboard-teams").append(`<team><teamname>${team}:</teamname><teamscore>${score}</teamscore></team>`)
                 }
     
-                $("#last-win-text").html("Last Win: " + stats.match_history.slice(-1)[0].winner);
+                $("#last-win-text").html("Last Win: " + stats.match_history.slice(-1)[0].winner.name);
             }
+
+            if (stats.current_match)
+            {
+                for (let team of stats.current_match.teams)
+                {
+                    let color = player_colors.find((c)=>c[0] == team.team_color);
+
+                    if (color)
+                        color = color[1];
+                    else
+                        color = "white";
+                        
+                    $("#current-match-teams").append(`<team><teamname style="color: ${color};padding-right: 0px;margin: auto;">${team.team_name.name}</teamname></team>`)
+                }
+            }
+
 
         });
 

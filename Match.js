@@ -19,6 +19,22 @@ class Match
             this.available_team_colors[i] = this.available_team_colors[j];
             this.available_team_colors[j] = temp;
         }
+
+        this.engine.on("entity_removed", (entity) => {
+            if (entity instanceof Player)
+            {
+                let team = this.teams.find((team) => team.team_name == entity.team_id);
+
+                if (team)
+                {
+                    let player_index = team.players.indexOf(entity);
+
+                    if (player_index != -1)
+                        team.players.splice(player_index, 1);
+      
+                }
+            }
+        });
     }
 
     add_team(socket, team_name)
@@ -72,6 +88,28 @@ class Match
                 }
             }
         
+    }
+
+    serialize()
+    {
+        return {
+            teams: this.teams.map((team) => {
+                return {
+                    team_name: team.team_name,
+                    team_color: team.team_color
+                    // players: team.players.map((player) => {
+                    //     return {
+                    //         pose: player.pose,
+                    //         health: player.health,
+                    //         max_health: player.max_health,
+                    //         team_id: player.team_id,
+                    //         team_color: player.team_color,
+                    //         id: player.id
+                    //     }
+                    // })
+                }
+            })
+        }
     }
 }
 

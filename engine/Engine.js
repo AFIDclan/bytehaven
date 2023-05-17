@@ -1,9 +1,11 @@
 const { set } = require("yalls/lib/utils");
+const EventEmitter = require("events");
 
-class Engine
+class Engine extends EventEmitter
 {
     constructor()
     {
+        super();
         this.entities = [];
         this.viewports = [];
         this.entity_map = {};
@@ -27,6 +29,7 @@ class Engine
     {
         this.remove_entity_from_map(entity);
         this.entities = this.entities.filter((e) => e.id != entity.id);
+        this.emit('entity_removed', entity);
     }
 
     remove_all_entities()

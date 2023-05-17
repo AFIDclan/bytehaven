@@ -102,7 +102,8 @@ info_log_stream._write = (chunk, encoding, done) => {
   setInterval(() => {
     io_server.local.emit("stats_update", {
       time_till_match_start: game.time_till_match_start,
-      match_history: game.match_history
+      match_history: game.match_history,
+      current_match: game.match ? game.match.serialize() : null
     });
   }, 1000);
 
