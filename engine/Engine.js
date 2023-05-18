@@ -14,7 +14,7 @@ class Engine extends EventEmitter
 
         // Clean up any stragglers in the entity map
         setInterval(()=>{
-            //this.garbage_collect_entity_map();
+            this.garbage_collect_entity_map();
         }, 1000)
     }
 
