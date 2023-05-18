@@ -14,7 +14,7 @@ class Engine extends EventEmitter
 
         // Clean up any stragglers in the entity map
         setInterval(()=>{
-            this.garbage_collect_entity_map();
+            //this.garbage_collect_entity_map();
         }, 1000)
     }
 
@@ -61,15 +61,20 @@ class Engine extends EventEmitter
 
     check_collisions()
     {
-        for (let entity of this.entities)
+
+        let checked_pairs = {}
+
+        for (let entity of this.entities.filter((entity) => entity.moved_last_frame))
         {
             for (let other_entity of this.get_adjacent_entities(entity))
             {
-                if (entity.id != other_entity.id)
+                if (entity.id != other_entity.id && !checked_pairs[entity.id + other_entity.id])
                 {
+                    checked_pairs[entity.id + other_entity.id] = true;
                     if (entity.hitbox.intersects(other_entity.hitbox))
                     {
                         entity.on_collision(other_entity);
+                        other_entity.on_collision(entity);
                     }
                 }
             } 
