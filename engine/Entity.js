@@ -44,7 +44,8 @@ class Entity
             pose: this.pose,
             name: this.name,
             hitbox: this.hitbox,
-            image_path: this.image_path
+            image_path: this.image_path,
+            type: this.constructor.name
         }
     }
 

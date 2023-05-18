@@ -31,6 +31,16 @@ class Entity
             //Draw hitbox
             ctx.strokeStyle = "red";
             ctx.strokeRect(-this.hitbox.size.x/2, -this.hitbox.size.y/2, this.hitbox.size.x, this.hitbox.size.y);
+
+            if (this.type == "Player")
+            {   
+                //Draw view circle (500px radius)
+                ctx.strokeStyle = "blue";
+                ctx.beginPath();
+                ctx.arc(0, 0, 900, 0, 2 * Math.PI);
+                ctx.stroke();
+
+            }
         }
         
         

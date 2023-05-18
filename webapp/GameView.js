@@ -111,6 +111,9 @@ class GameView extends Page
                 let e = new Entity();
                 e.pose.from_other(entity.pose)
                 e.id = entity.id;
+                e.type = entity.type;
+
+                console.log(entity.type)
 
                 //let svg = this.images.find((i) => i.name == entity.image_path).svg;
                 let svg = this.images.find((i) => i.name == entity.image_path).svg;
