@@ -20,6 +20,14 @@ class PhysicsEntity extends Entity
 
         super.update();
     }
+
+    serialize()
+    {
+        return {
+            ...super.serialize(),
+            velocity: this.velocity
+        }
+    }
 }
 
 module.exports = PhysicsEntity;

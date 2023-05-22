@@ -56,7 +56,7 @@ class GameView extends Page
         let dom_height = document.body.clientHeight;
         let aspect_ratio = dom_width / dom_height;
 
-        let game_width = 3000;
+        let game_width = 6000;
         let game_height = game_width / aspect_ratio;
 
         let game_view_rect  = Rect.from_coordinates(-game_width / 2, -game_height / 2, game_width, game_height);
@@ -70,20 +70,25 @@ class GameView extends Page
 
             if (stats.match_history.length > 0)
             {
-                let teams = stats.match_history.reduce((acc, val) => {
-                    if (!acc[val.winner.name])
-                        acc[val.winner.name] = 0;
-                    acc[val.winner.name] += val.score;
-                    return acc;
-                }, {});
-    
-                for (let team of Object.keys(teams))
+                let teams = {}
+
+                for (let match of stats.match_history)
                 {
-                    let score = teams[team];
-                    $("#leaderboard-teams").append(`<team><teamname>${team}:</teamname><teamscore>${score}</teamscore></team>`)
+                    for (let team of match)
+                    {
+                        if (!teams[team.team_name])
+                            teams[team.team_name] = {score: 0, name: team.team_name};
+
+                        teams[team.team_name].score += team.score;
+                    }
                 }
+
+                teams = Object.values(teams).sort((a, b) => b.score - a.score);
     
-                $("#last-win-text").html("Last Win: " + stats.match_history.slice(-1)[0].winner.name);
+                for (let team of teams)
+                    $("#leaderboard-teams").append(`<team><teamname>${team.name}:</teamname><teamscore>${Math.round(team.score)}</teamscore></team>`)
+                
+                $("#last-win-text").html("Last Win: " + stats.match_history.slice(-1)[0][0].team_name);
             }
 
             if (stats.current_match)
@@ -97,7 +102,7 @@ class GameView extends Page
                     else
                         color = "white";
                         
-                    $("#current-match-teams").append(`<team><teamname style="color: ${color};padding-right: 0px;margin: auto;">${team.team_name.name}</teamname></team>`)
+                    $("#current-match-teams").append(`<team><teamname style="color: ${color};padding-right: 0px;margin: auto;">${team.team_name}</teamname></team>`)
                 }
             }
 
@@ -112,8 +117,6 @@ class GameView extends Page
                 e.pose.from_other(entity.pose)
                 e.id = entity.id;
                 e.type = entity.type;
-
-                console.log(entity.type)
 
                 //let svg = this.images.find((i) => i.name == entity.image_path).svg;
                 let svg = this.images.find((i) => i.name == entity.image_path).svg;
@@ -193,7 +196,7 @@ class GameView extends Page
             if (this.viewport.view_rect.size.x + delta < 400 || this.viewport.view_rect.size.y + delta < 400)
                 return;
 
-            if (this.viewport.view_rect.size.x + delta > 5000 || this.viewport.view_rect.size.y + delta > 5000)
+            if (this.viewport.view_rect.size.x + delta > 9000 || this.viewport.view_rect.size.y + delta > 9000)
                 return;
 
             let aspect_ratio = this.viewport.view_rect.size.x / this.viewport.view_rect.size.y;

@@ -1,11 +1,14 @@
 const Pose = require('./utils/Pose.js');
 const Rect = require('./utils/Rect.js');
 const uuidv4 = require('uuid').v4;
+const EventEmitter = require('events');
 
-class Entity
+class Entity extends EventEmitter
 {
     constructor(image_path, hitbox=new Rect(), name="Player")
     {
+        super();
+        this.active = true;
         this.id = uuidv4();
         this.pose = new Pose(0, 0, 0);
         this.last_pose = new Pose(0, 0, 0);
