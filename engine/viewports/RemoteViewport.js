@@ -39,8 +39,15 @@ class RemoteViewport extends Viewport {
         return entity.moved_last_frame;
     });
 
+    let image_changed_entities = this.seen_entities.filter((entity) => {
+        return entity.image_changed_last_frame;
+    });
+
     if (moved_entities.length)
       this.remote_sock.emit("entities_moved", moved_entities.map((entity) => ({id: entity.id, pose: entity.pose})));
+
+    if (image_changed_entities.length)
+      this.remote_sock.emit("entities_image_changed", image_changed_entities.map((entity) => ({id: entity.id, image_path: entity.image_path})));
 
     if (removed_entities.length)
       this.remote_sock.emit("removed_entities", removed_entities.map((entity) => entity.id));

@@ -12,6 +12,9 @@ class Engine extends EventEmitter
 
         this.map_grid_size = 100;
 
+        this.last_update = Date.now();
+        this.delta_time = 0;
+
         // Clean up any stragglers in the entity map
         setInterval(()=>{
             this.garbage_collect_entity_map();
@@ -45,6 +48,9 @@ class Engine extends EventEmitter
 
     update()
     {
+        this.delta_time = Date.now() - this.last_update;
+        this.last_update = Date.now();
+        
         for (let entity of this.entities)
             entity.update();
 

@@ -140,13 +140,35 @@ class GameView extends Page
 
         this.io.on("entities_moved", (entities) => {
             entities.forEach((entity) => {
+                
                 let e = this.entities.find((e) => e.id == entity.id);
                 if (!e)
                     return;
+
                 e.pose.from_other(entity.pose);
             });
 
         });
+
+        this.io.on("entities_image_changed", (entities) => {
+            entities.forEach((entity) => {
+                
+                let e = this.entities.find((e) => e.id == entity.id);
+                if (!e)
+                    return;
+
+                let svg = this.images.find((i) => i.name == entity.image_path).svg;
+
+            
+                if (svg)
+                    e.image = svg
+                else
+                    console.log(entity)
+            });
+
+        });
+
+
 
         this.io.on("removed_entities", (ids) => {
             ids.forEach((id) => {

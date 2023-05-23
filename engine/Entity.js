@@ -36,6 +36,8 @@ class Entity extends EventEmitter
         //Check if the entity moved last frame
         this.moved_last_frame = this.pose.x != this.last_pose.x || this.pose.y != this.last_pose.y || this.pose.angle != this.last_pose.angle;
 
+        this.image_changed_last_frame = this.image_path != this.last_image_path;
+
         //Update last pose
         this.last_pose.from_other(this.pose);
     }
