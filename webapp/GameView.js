@@ -56,12 +56,12 @@ class GameView extends Page
         let dom_height = document.body.clientHeight;
         let aspect_ratio = dom_width / dom_height;
 
-        let game_width = 6000;
+        let game_width = 3000;
         let game_height = game_width / aspect_ratio;
 
         let game_view_rect  = Rect.from_coordinates(-game_width / 2, -game_height / 2, game_width, game_height);
 
-        this.viewport = new DOMViewport(this.entities, "game-viewport", dom_width, dom_height, game_view_rect);
+        this.viewport = new DOMViewport(this.entities, "game-viewport", dom_width, dom_height, game_view_rect, this.images.filter((i) => i.name && i.name.startsWith("bg_space")).map((i) => i.svg));
 
         this.io.on("stats_update", (stats) => {
             $("#time-till-match-start").html("Time Till Match Start: " + Math.round(stats.time_till_match_start / 1000) + "s");
