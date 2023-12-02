@@ -56,7 +56,7 @@ class GameView extends Page
         let dom_height = document.body.clientHeight;
         let aspect_ratio = dom_width / dom_height;
 
-        let game_width = 3000;
+        let game_width = 8000;
         let game_height = game_width / aspect_ratio;
 
         let game_view_rect  = Rect.from_coordinates(-game_width / 2, -game_height / 2, game_width, game_height);
