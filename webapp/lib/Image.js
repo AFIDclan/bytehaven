@@ -16,6 +16,7 @@ class Image {
 
         if (this.sprites_x > 1 || this.sprites_y > 1)
         {
+            console.log("Loading spritesheet: " + this.src);
             this.sprite_size = {
                 x: this.resource.width / this.sprites_x,
                 y: this.resource.height / this.sprites_y,
@@ -30,17 +31,20 @@ class Image {
             {
                 for (let x = 0; x < this.sprites_x; x++)
                 {
-                    let canvas = document.createElement("canvas");
-                    canvas.width = this.sprite_size.x;
-                    canvas.height = this.sprite_size.y;
+                    let sprite_canvas = document.createElement("canvas");
+                    sprite_canvas.width = this.sprite_size.x;
+                    sprite_canvas.height = this.sprite_size.y;
 
-                    let ctx = canvas.getContext("2d");
+                    let ctx = sprite_canvas.getContext("2d");
 
                     ctx.drawImage(this.resource, -x * this.sprite_size.x, -y * this.sprite_size.y);
 
-                    this.sprites.push(canvas);
+
+                    //TODO: Rendering canvas to canvas is slow and breaks things
+                    this.sprites.push(sprite_canvas);
                 }
             }
+            console.log("Loaded " + this.sprites.length + " sprites")
         }
         
 
