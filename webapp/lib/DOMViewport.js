@@ -68,7 +68,7 @@ class DOMViewport {
     //Draw all entities
     for (let entity of entities)
     {
-      entity.draw(this.ctx);
+      entity.draw(this.ctx, this.view_rect);
     }
   }
 

@@ -1,30 +1,42 @@
 const Pose = require('../../engine/utils/Pose.js');
 const Rect = require('../../engine/utils/Rect.js');
+const Image = require('./Image.js');
 const uuidv4 = require('uuid').v4;
 
 const debug = false;
 
 class Entity
 {
-    constructor()
+    constructor(json_entity, game_view)
     {
-        this.id = uuidv4();
-        this.pose = new Pose();
-        this.name = "UNSET";
-        this.hitbox = new Rect();
+        this.game_view = game_view;
 
+        this.id = json_entity.id || uuidv4();
+        this.type = json_entity.type;
+        this.name = "UNSET";
+        this.pose = Pose.from_other(json_entity.pose)
+        this.hitbox = json_entity.hitbox || new Rect();
+
+        this.update_image(json_entity.image);
+ 
     }
 
 
-
-    draw(ctx)
+    update_image(json_image)
     {
-        if (!this.image) return;
+        this.image = new Image(json_image);
+        this.image.load(this.game_view.images);
+    }
+
+
+    draw(ctx, view_rect)
+    {
+        if (!this.image || !this.image.has_resource) return;
 
         ctx.save(); // Save the current canvas state
         ctx.translate(this.pose.x, this.pose.y); // Move the origin to the player's position
         ctx.rotate(this.pose.angle); // Rotate the canvas by the player's angle
-        ctx.drawImage(this.image, -this.image.width/2, -this.image.height/2); // Draw the image centered on the origin
+        ctx.drawImage(this.image.resource, -this.image.resource.width/2, -this.image.resource.height/2); // Draw the image centered on the origin
 
         if (debug)
         {

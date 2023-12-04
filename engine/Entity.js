@@ -3,9 +3,11 @@ const Rect = require('./utils/Rect.js');
 const uuidv4 = require('uuid').v4;
 const EventEmitter = require('events');
 
+
+
 class Entity extends EventEmitter
 {
-    constructor(image_path, hitbox=new Rect(), name="Player")
+    constructor(image, hitbox=new Rect(), name="Player")
     {
         super();
         this.active = true;
@@ -15,7 +17,7 @@ class Entity extends EventEmitter
         this.name = name;
         this.hitbox = hitbox;
         this.moved_last_frame = false;
-        this.image_path = image_path;
+        this.image = image;
 
         this.map_location = null;
 
@@ -36,7 +38,9 @@ class Entity extends EventEmitter
         //Check if the entity moved last frame
         this.moved_last_frame = this.pose.x != this.last_pose.x || this.pose.y != this.last_pose.y || this.pose.angle != this.last_pose.angle;
 
-        this.image_changed_last_frame = this.image_path != this.last_image_path;
+        this.image_changed_last_frame = this.image != this.last_image;
+
+        this.last_image = this.image;
 
         //Update last pose
         this.last_pose.from_other(this.pose);
@@ -49,7 +53,7 @@ class Entity extends EventEmitter
             pose: this.pose,
             name: this.name,
             hitbox: this.hitbox,
-            image_path: this.image_path,
+            image: this.image,
             type: this.constructor.name
         }
     }

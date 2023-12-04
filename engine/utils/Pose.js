@@ -44,6 +44,11 @@ class Pose extends Vec2 {
         this.y = other.y;
         this.angle = other.angle;
     }
+
+    static from_other(other)
+    {
+        return new Pose(other.x, other.y, other.angle);
+    }
     
 }
 

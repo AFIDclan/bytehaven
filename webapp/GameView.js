@@ -42,11 +42,11 @@ class GameView extends Page
         let images = await $.get("images");
 
 
-        // GET svgs and load into an IMAGE object using $.GET
+        // GET imgs and load into an IMAGE object using $.GET
         this.images = images.map((imagepath) => {
             let img = new Image();
             img.src = "images/" + imagepath;
-            return {name: imagepath, svg: img};
+            return {path: imagepath, img: img};
         })
 
 
@@ -61,7 +61,7 @@ class GameView extends Page
 
         let game_view_rect  = Rect.from_coordinates(-game_width / 2, -game_height / 2, game_width, game_height);
 
-        this.viewport = new DOMViewport(this.entities, "game-viewport", dom_width, dom_height, game_view_rect, this.images.filter((i) => i.name && i.name.startsWith("bg_space")).map((i) => i.svg));
+        this.viewport = new DOMViewport(this.entities, "game-viewport", dom_width, dom_height, game_view_rect, this.images.filter((i) => i.path && i.path.startsWith("bg_space")).map((i) => i.img));
 
         this.io.on("stats_update", (stats) => {
             $("#time-till-match-start").html("Time Till Match Start: " + Math.round(stats.time_till_match_start / 1000) + "s");
@@ -113,23 +113,7 @@ class GameView extends Page
         this.io.on("new_entities", (entities) => {
 
             entities.forEach((entity) => {
-                let e = new Entity();
-                e.pose.from_other(entity.pose)
-                e.id = entity.id;
-                e.type = entity.type;
-
-                //let svg = this.images.find((i) => i.name == entity.image_path).svg;
-                let svg = this.images.find((i) => i.name == entity.image_path).svg;
-
-                
-                if (svg)
-                    e.image = svg
-                else
-                    console.log(entity)
-
-                e.hitbox = entity.hitbox;
-                //TODO: Update hitbox
-
+                let e = new Entity(entity, this);
 
                 this.entities.push(e);
 
@@ -151,19 +135,16 @@ class GameView extends Page
         });
 
         this.io.on("entities_image_changed", (entities) => {
+            console.log("Image changed for " + entities.length + " entities")
             entities.forEach((entity) => {
                 
                 let e = this.entities.find((e) => e.id == entity.id);
                 if (!e)
                     return;
 
-                let svg = this.images.find((i) => i.name == entity.image_path).svg;
+                e.update_image(entity.image);
 
-            
-                if (svg)
-                    e.image = svg
-                else
-                    console.log(entity)
+
             });
 
         });

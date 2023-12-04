@@ -4,9 +4,9 @@ const Rect = require('./utils/Rect.js');
 
 class PhysicsEntity extends Entity
 {
-    constructor(image_path, hitbox, name="PhysicsEntity")
+    constructor(image, hitbox, name="PhysicsEntity")
     {
-        super(image_path, hitbox, name);
+        super(image, hitbox, name);
 
         this.velocity = new Pose(0, 0, 0);
     }
