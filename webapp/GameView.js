@@ -139,11 +139,7 @@ class GameView extends Page
             entities.forEach((entity) => {
                 
                 let e = this.entities.find((e) => e.id == entity.id);
-                if (!e)
-                    return;
-
-                e.update_image(entity.image);
-
+                if (e) e.update_image(entity.image);
 
             });
 
@@ -220,7 +216,7 @@ class GameView extends Page
 
         setInterval(() => {
             this.viewport.render();
-        }, 15);
+        }, 30);
     }
 }
 

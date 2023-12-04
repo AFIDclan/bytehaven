@@ -17,7 +17,9 @@ class Entity extends EventEmitter
         this.name = name;
         this.hitbox = hitbox;
         this.moved_last_frame = false;
+        
         this.image = image;
+        this.last_image = this.image;
 
         this.map_location = null;
 

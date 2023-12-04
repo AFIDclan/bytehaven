@@ -36,7 +36,10 @@ class Entity
         ctx.save(); // Save the current canvas state
         ctx.translate(this.pose.x, this.pose.y); // Move the origin to the player's position
         ctx.rotate(this.pose.angle); // Rotate the canvas by the player's angle
-        ctx.drawImage(this.image.resource, -this.image.resource.width/2, -this.image.resource.height/2); // Draw the image centered on the origin
+
+        let drawable = this.image.get_drawable();
+
+        ctx.drawImage(drawable, -drawable.width/2, -drawable.height/2); // Draw the image centered on the origin
 
         if (debug)
         {

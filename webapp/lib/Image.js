@@ -14,9 +14,56 @@ class Image {
     load(images) {
         this.resource = images.find((i) => i.path == this.src).img;
 
+        if (this.sprites_x > 1 || this.sprites_y > 1)
+        {
+            this.sprite_size = {
+                x: this.resource.width / this.sprites_x,
+                y: this.resource.height / this.sprites_y,
+            }
+
+            this.is_sprite = true;
+            this.sprites = [];
+            this.sprite_index = 0;
+            this.sprite_count = this.sprites_x * this.sprites_y;
+
+            for (let y = 0; y < this.sprites_y; y++)
+            {
+                for (let x = 0; x < this.sprites_x; x++)
+                {
+                    let canvas = document.createElement("canvas");
+                    canvas.width = this.sprite_size.x;
+                    canvas.height = this.sprite_size.y;
+
+                    let ctx = canvas.getContext("2d");
+
+                    ctx.drawImage(this.resource, -x * this.sprite_size.x, -y * this.sprite_size.y);
+
+                    this.sprites.push(canvas);
+                }
+            }
+        }
+        
+
         if (this.resource)
             this.has_resource = true;
     }
-}
 
+
+    get_drawable() {
+        if (!this.has_resource)
+            return null;
+
+        if (this.is_sprite)
+        {
+            let sprite = this.sprites[this.sprite_index];
+            this.sprite_index++;
+            if (this.sprite_index >= this.sprite_count)
+                this.sprite_index = 0;
+
+            return sprite;
+        }
+
+        return this.resource;
+    }
+}
 module.exports = Image
