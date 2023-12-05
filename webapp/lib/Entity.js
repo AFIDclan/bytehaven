@@ -22,10 +22,9 @@ class Entity
     }
 
 
-    update_image(json_image)
+    update_image(image_src)
     {
-        this.image = new Image(json_image);
-        this.image.load(this.game_view.images);
+        this.image = this.game_view.images.find((i) => i.src == image_src);
     }
 
 
@@ -38,6 +37,8 @@ class Entity
         ctx.rotate(this.pose.angle); // Rotate the canvas by the player's angle
 
         let drawable = this.image.get_drawable();
+
+        if (!drawable || drawable.width == 0 || drawable.height == 0) return;
 
         ctx.drawImage(drawable, -drawable.width/2, -drawable.height/2); // Draw the image centered on the origin
 

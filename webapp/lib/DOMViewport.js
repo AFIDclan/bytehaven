@@ -34,18 +34,18 @@ class DOMViewport {
   render()
   {
     let entities = this.entities;
-    let background_pat = this.ctx.createPattern(this.background_images[0], "repeat");    
+    // let background_pat = this.ctx.createPattern(this.background_images[0], "repeat");    
     
     //Clear the canvas
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    // this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
 
-    //Draw background
-    this.ctx.save();
-    this.ctx.fillStyle = background_pat;
-    this.ctx.setTransform(1, 0, 0, 1, 0, 0);
-    this.ctx.fillRect(0, 0, this.dom_width, this.dom_height);
-    this.ctx.restore();
+    // //Draw background
+    // this.ctx.save();
+    // this.ctx.fillStyle = background_pat;
+    // this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+    // this.ctx.fillRect(0, 0, this.dom_width, this.dom_height);
+    // this.ctx.restore();
 
     let center = this.view_rect.center;
     //Set canvas to be game_width x game_height, centered on the center pose
@@ -64,7 +64,9 @@ class DOMViewport {
     
 
     this.ctx.translate(-center.x + this.view_rect.size.x / 2, -center.y + this.view_rect.size.y / 2);
+    this.ctx.clearRect(center.x - this.view_rect.size.x / 2, center.y - this.view_rect.size.y / 2, this.view_rect.size.x, this.view_rect.size.y);
 
+    
     //Draw all entities
     for (let entity of entities)
     {

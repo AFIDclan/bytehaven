@@ -1,5 +1,5 @@
 
-class Image {
+class I {
     constructor(json_image) {
         this.src = json_image.src
         this.sprites_x = json_image.sprites_x;
@@ -11,8 +11,9 @@ class Image {
         this.has_resource = false;
     }
 
-    load(images) {
-        this.resource = images.find((i) => i.path == this.src).img;
+    load() {
+        this.resource = new Image();
+        this.resource.src = "images/" + this.src;
 
         if (this.sprites_x > 1 || this.sprites_y > 1)
         {
@@ -70,4 +71,4 @@ class Image {
         return this.resource;
     }
 }
-module.exports = Image
+module.exports = I

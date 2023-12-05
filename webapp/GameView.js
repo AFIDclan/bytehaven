@@ -1,5 +1,6 @@
 const { Page } = require('slitan')
 const DOMViewport = require('./lib/DOMViewport');
+const Image = require('./lib/Image.js');
 const Entity = require('./lib/Entity.js');
 const Rect = require('../engine/utils/Rect.js');
 
@@ -43,10 +44,10 @@ class GameView extends Page
 
 
         // GET imgs and load into an IMAGE object using $.GET
-        this.images = images.map((imagepath) => {
-            let img = new Image();
-            img.src = "images/" + imagepath;
-            return {path: imagepath, img: img};
+        this.images = images.map((image) => {
+            let img = new Image(image);
+            img.load();
+            return img;
         })
 
 

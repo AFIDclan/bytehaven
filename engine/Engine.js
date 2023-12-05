@@ -3,11 +3,13 @@ const EventEmitter = require("events");
 
 class Engine extends EventEmitter
 {
-    constructor()
+    constructor(log)
     {
         super();
         this.entities = [];
+        this.log = log;
         this.viewports = [];
+        this.images = [];
         this.entity_map = {};
 
         this.map_grid_size = 100;
@@ -23,9 +25,27 @@ class Engine extends EventEmitter
 
     add_entity(entity)
     {
+        if (!this.has_imagepath(entity.image))
+            return this.log.warn("Attempted to add entity with image that is not loaded: " + entity.image.src + " (name: " + entity.name + ")");
+        
         this.entities.push(entity);
 
         this.update_entity_in_map(entity);
+    }
+
+    add_image(image)
+    {
+        this.images.push(image);
+    }
+
+    find_imagepath(imagepath)
+    {
+        return this.images.find((i) => i.src == imagepath);
+    }
+
+    has_imagepath(imagepath)
+    {
+        return this.find_imagepath(imagepath) != undefined;
     }
 
     remove_entity(entity)
