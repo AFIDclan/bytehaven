@@ -36,11 +36,7 @@ class Entity
         ctx.translate(this.pose.x, this.pose.y); // Move the origin to the player's position
         ctx.rotate(this.pose.angle); // Rotate the canvas by the player's angle
 
-        let drawable = this.image.get_drawable();
-
-        if (!drawable || drawable.width == 0 || drawable.height == 0) return;
-
-        ctx.drawImage(drawable, -drawable.width/2, -drawable.height/2); // Draw the image centered on the origin
+        this.image.draw(ctx);
 
         if (debug)
         {
