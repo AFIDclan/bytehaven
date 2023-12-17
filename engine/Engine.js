@@ -1,5 +1,6 @@
 const { set } = require("yalls/lib/utils");
 const EventEmitter = require("events");
+const { PhysicsEntity } = require(".");
 
 class Engine extends EventEmitter
 {
@@ -75,6 +76,9 @@ class Engine extends EventEmitter
             entity.update();
 
 
+
+        
+
         // Maintain the entity map
         this.entities.filter((entity) => entity.moved_last_frame).forEach((entity) => this.update_entity_in_map(entity));
 
@@ -94,13 +98,29 @@ class Engine extends EventEmitter
         {
             for (let other_entity of this.get_adjacent_entities(entity))
             {
-                if (entity.id != other_entity.id && !checked_pairs[entity.id + other_entity.id])
+                if (entity.id != other_entity.id && !checked_pairs[other_entity.id+entity.id])
                 {
                     checked_pairs[entity.id + other_entity.id] = true;
-                    if (entity.hitbox.intersects(other_entity.hitbox))
+
+                    let col = entity.hitbox.CollidesWith(other_entity.hitbox)
+                    if (col.collides)
                     {
                         entity.on_collision(other_entity);
                         other_entity.on_collision(entity);
+
+                        let dx = col.colPoint1.x - col.colPoint2.x;
+                        let dy = col.colPoint1.y - col.colPoint2.y;
+                        
+                        if (entity.is_physics_entity && other_entity.is_physics_entity)
+                        {
+                        if (!entity.is_static)
+                            entity.move_by(dx/2, dy/2);
+
+                        if (!other_entity.is_static)
+                            other_entity.move_by(-dx/2, -dy/2);
+                        }
+                        
+
                     }
                 }
             } 
@@ -140,8 +160,8 @@ class Engine extends EventEmitter
 
     remove_entity_from_map(entity)
     {
-        let x = Math.round(entity.pose.x/this.map_grid_size);
-        let y = Math.round(entity.pose.y/this.map_grid_size);
+        let x = Math.round(entity._pose.x/this.map_grid_size);
+        let y = Math.round(entity._pose.y/this.map_grid_size);
 
         if (this.entity_map[x] != undefined && this.entity_map[x][y] != undefined)
         {
@@ -151,8 +171,8 @@ class Engine extends EventEmitter
 
     update_entity_in_map(entity)
     {
-        let x = Math.round(entity.pose.x/this.map_grid_size);
-        let y = Math.round(entity.pose.y/this.map_grid_size);
+        let x = Math.round(entity._pose.x/this.map_grid_size);
+        let y = Math.round(entity._pose.y/this.map_grid_size);
 
         if (this.entity_map[x] == undefined)
             this.entity_map[x] = {};

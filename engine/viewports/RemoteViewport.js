@@ -1,16 +1,27 @@
 const Pose = require('../utils/Pose.js');
-const Rect = require('../utils/Rect.js');
 const Viewport = require('./Viewport.js');
+const { Polygon, Vector2 } = require("collidify");
+
+let poly_from_json = (json) => {
+
+  let corner_tl = new Vector2(json.center.x - json.size.x/2, json.center.y - json.size.y/2);
+  let corner_tr = new Vector2(json.center.x + json.size.x/2, json.center.y - json.size.y/2);
+  let corner_br = new Vector2(json.center.x + json.size.x/2, json.center.y + json.size.y/2);
+  let corner_bl = new Vector2(json.center.x - json.size.x/2, json.center.y + json.size.y/2);
+
+  return new Polygon([corner_tl, corner_tr, corner_br, corner_bl]);
+}
+
 
 class RemoteViewport extends Viewport {
   constructor(sock, engine, view_rect) {
-    super(engine, Rect.from_json(view_rect));
+    super(engine, poly_from_json(view_rect));
     this.remote_sock = sock;
 
     this.seen_entities = [];
 
     this.remote_sock.on("viewport_update", (view_rect) => {
-      this.view_rect = Rect.from_json(view_rect);
+      this.view_rect = poly_from_json(view_rect);
       });
   }
 
@@ -44,7 +55,7 @@ class RemoteViewport extends Viewport {
     });
 
     if (moved_entities.length)
-      this.remote_sock.emit("entities_moved", moved_entities.map((entity) => ({id: entity.id, pose: entity.pose})));
+      this.remote_sock.emit("entities_moved", moved_entities.map((entity) => ({id: entity.id, pose: entity._pose})));
 
     if (image_changed_entities.length)
       this.remote_sock.emit("entities_image_changed", image_changed_entities.map((entity) => ({id: entity.id, image: entity.image})));

@@ -1,7 +1,7 @@
-const Rect = require('../utils/Rect.js');
+const { Polygon, Vector2 } = require("collidify");
 
 class Viewport {
-  constructor(engine, view_rect=new Rect()) {
+  constructor(engine, view_rect=new Polygon()) {
 
     this.view_rect = view_rect;
     this.engine = engine;

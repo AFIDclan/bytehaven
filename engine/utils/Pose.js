@@ -7,17 +7,6 @@ class Pose extends Vec2 {
         this.angle = angle;
     }
 
-    step_forward(distance)
-    {
-        this.x += distance * Math.sin(this.angle);
-        this.y += distance * -Math.cos(this.angle);
-    }
-
-    turn(angle)
-    {
-        this.angle += angle;
-    }
-
     after(other)
     {
         //Return a new pose that is the result of applying this pose in the coordinate system of the other pose
@@ -30,13 +19,6 @@ class Pose extends Vec2 {
         return result;
     }
 
-    rotate_vec(other)
-    {
-        let result = new Vec2();
-        result.x = other.x * Math.cos(this.angle) - other.y * Math.sin(this.angle);
-        result.y = other.x * Math.sin(this.angle) + other.y * Math.cos(this.angle);
-        return result;
-    }
 
     from_other(other)
     {

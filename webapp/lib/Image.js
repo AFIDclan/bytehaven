@@ -1,6 +1,8 @@
 
 class I {
     constructor(json_image) {
+
+        this.json_image = json_image;
         this.src = json_image.src
         this.sprites_x = json_image.sprites_x;
         this.sprites_y = json_image.sprites_y;
@@ -51,6 +53,22 @@ class I {
 
         if (this.resource)
             this.has_resource = true;
+    }
+
+    clone() {
+        let clone = new I(this.json_image);
+       
+        clone.resource = this.resource;
+        clone.has_resource = this.has_resource;
+        clone.sprites = this.sprites;
+        clone.sprite_index = this.sprite_index;
+        clone.sprite_count = this.sprite_count;
+        clone.sprite_size = this.sprite_size;
+        clone.is_sprite = this.is_sprite;
+        clone.last_frame = this.last_frame;
+
+        return clone;
+        
     }
 
 

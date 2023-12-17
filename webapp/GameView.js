@@ -124,12 +124,13 @@ class GameView extends Page
         });
 
         this.io.on("entities_moved", (entities) => {
+            
             entities.forEach((entity) => {
                 
                 let e = this.entities.find((e) => e.id == entity.id);
                 if (!e)
                     return;
-
+                
                 e.pose.from_other(entity.pose);
             });
 

@@ -85,6 +85,21 @@ class Rect {
 
 
     /**
+     * Returns a vector representing the overlap between this rectangle and another axis-aligned rectangle.
+     * The vector points from the center of this rectangle to the center of the other.
+     * Its magnitude represents the estimated overlap distance along each axis.
+     *
+     * @param {Rect} other - The other rectangle to calculate the overlap vector with.
+     * @returns {Vec2} The overlap vector.
+     */
+    get_overlap_vector(other) {
+        const dx = Math.max(0, Math.min(this.center.x + this.size.x / 2, other.center.x + other.size.x / 2) - Math.max(this.center.x - this.size.x / 2, other.center.x - other.size.x / 2));
+        const dy = Math.max(0, Math.min(this.center.y + this.size.y / 2, other.center.y + other.size.y / 2) - Math.max(this.center.y - this.size.y / 2, other.center.y - other.size.y / 2));
+
+        return new Vec2(dx, dy);
+    }
+
+    /**
      * Returns true if this rectangle intersects another rectangle
      *
      * @param {Rect} other - The other rotated rectangle to test for intersection.

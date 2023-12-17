@@ -25,6 +25,15 @@ class Entity
     update_image(image_src)
     {
         this.image = this.game_view.images.find((i) => i.src == image_src);
+
+        if (this.image)
+        {
+            this.image = this.image.clone();
+            this.image.sprite_index = 0;
+        }
+            
+
+        
     }
 
 
